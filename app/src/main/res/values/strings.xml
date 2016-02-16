@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Diary</string>
+    <string name="edit">編集</string>
+    <string name="list">一覧</string>
+    <string name="setting">設定</string>
+    <string name="previous_month">前の月</string>
+    <string name="next_month">次の月</string>
+</resources>
