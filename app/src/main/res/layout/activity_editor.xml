@@ -34,7 +34,7 @@
             <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="消す"
+                android:text="@string/erase"
                 android:id="@+id/button"
                 android:layout_alignTop="@+id/editText"
                 android:layout_alignParentRight="true"
@@ -44,12 +44,19 @@
             <Button
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="保存"
+                android:text="@string/save"
                 android:id="@+id/button2"
                 android:layout_below="@+id/button"
                 android:layout_centerHorizontal="true"
                 android:onClick="save" />
         </RelativeLayout>
+
+        <Spinner
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/tagsSpinner"
+            android:dropDownWidth="wrap_content"
+            android:spinnerMode="dropdown" />
     </LinearLayout>
 
 </LinearLayout>

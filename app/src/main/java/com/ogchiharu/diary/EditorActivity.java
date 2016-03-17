@@ -3,21 +3,32 @@ package com.ogchiharu.diary;
 import android.app.AlertDialog;
 import android.content.ContentValues;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.SpannableStringBuilder;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 public class EditorActivity extends AppCompatActivity {
 
-    int year, month, day, date;
+    int year, month, day, date, tagsNumbers;
+    String editorTag;
     EditText editText;
     TextView editorDateText;
+    ArrayAdapter arrayAdapter;
+
+    Spinner tagsSpinner;
+
+    SharedPreferences sharedPreferences;
 
     MySQLiteOpenHelper mySQLiteOpenHelper;
     SQLiteDatabase database;
@@ -33,10 +44,37 @@ public class EditorActivity extends AppCompatActivity {
         editText = new EditText(this);
         editText = (EditText)findViewById(R.id.editText);
         editorDateText = (TextView)findViewById(R.id.editorDateText);
+        tagsSpinner = (Spinner)findViewById(R.id.tagsSpinner);
 
+        arrayAdapter = new ArrayAdapter(this, android.R.layout.simple_spinner_item);
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        tagsNumbers = sharedPreferences.getInt("tagsNumbers", 1);
         year = getIntent().getIntExtra("year", 0);
         month = getIntent().getIntExtra("month", 0);
         day = getIntent().getIntExtra("day", 0);
+
+        arrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        for(int i = 1; i < tagsNumbers; i = i + 1){
+            arrayAdapter.add(searchTags(i));
+        }
+
+        tagsSpinner.setAdapter(arrayAdapter);
+        tagsSpinner.setSelection(0);
+
+        tagsSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+
+                Spinner spinner = (Spinner)parent;
+                editorTag = (String)spinner.getSelectedItem();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
         date = day + month * 100 + year * 10000;
 
         editorDateText.setText(year + "年" + month + "月" + day + "日の予定");
@@ -65,10 +103,32 @@ public class EditorActivity extends AppCompatActivity {
         return result;
     }
 
-    public void insert(int date, String diary){
+    public String searchTags(int idNum){
+        Cursor cursor = null;
+        String result = "";
+
+        try{
+            cursor = database.query(MySQLiteOpenHelper.DIARY_TABLE, new String[]{"id", "tag"}, "id = ?", new String[]{String.valueOf(idNum)}, null, null, null);
+
+            int indexTag = cursor.getColumnIndex("tag");
+
+            while(cursor.moveToNext()){
+                result = cursor.getString(indexTag);
+            }
+        }finally {
+            if(cursor != null){
+                cursor.close();
+            }
+        }
+
+        return result;
+    }
+
+    public void insert(int date, String tag, String diary){
 
         ContentValues values = new ContentValues();
         values.put("date", date);
+        values.put("tag", tag);
         values.put("diary", diary);
 
         database.insert(MySQLiteOpenHelper.DIARY_TABLE, null, values);
@@ -77,7 +137,7 @@ public class EditorActivity extends AppCompatActivity {
     public void save(View view){
         SpannableStringBuilder spannableStringBuilder = (SpannableStringBuilder)editText.getText();
         String text = spannableStringBuilder.toString();
-        insert(date, text);
+        insert(date, editorTag, text);
 
         Toast.makeText(EditorActivity.this, "保存しました。", Toast.LENGTH_SHORT).show();
     }
@@ -90,7 +150,7 @@ public class EditorActivity extends AppCompatActivity {
         alertDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialogInterface, int which) {
                 editText.setText("");
-                insert(date, "");
+                insert(date,editorTag, "");
                 Toast.makeText(EditorActivity.this, "消去しました。", Toast.LENGTH_SHORT).show();
             }
         });

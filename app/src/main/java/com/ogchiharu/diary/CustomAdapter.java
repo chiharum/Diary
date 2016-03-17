@@ -36,6 +36,7 @@ public class CustomAdapter extends ArrayAdapter<Item> {
         if(item != null){
             viewHolder.dateText.setText(item.dateText);
             viewHolder.contentText.setText(item.diary);
+            viewHolder.tagText.setText(item.tag);
         }
 
         return convertView;
@@ -44,9 +45,11 @@ public class CustomAdapter extends ArrayAdapter<Item> {
     private class ViewHolder{
         TextView dateText;
         TextView contentText;
+        TextView tagText;
 
         public ViewHolder(View view){
             dateText = (TextView)view.findViewById(R.id.dateText);
+            tagText = (TextView)view.findViewById(R.id.tagText);
             contentText = (TextView)view.findViewById(R.id.contentText);
         }
     }

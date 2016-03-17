@@ -5,4 +5,15 @@
     <string name="setting">設定</string>
     <string name="previous_month">前の月</string>
     <string name="next_month">次の月</string>
+    <string name="this_month">今日</string>
+    <string name="erase">消す</string>
+    <string name="save">保存</string>
+    <string name="all_erase">すべてのデータを削除</string>
+    <string name="add_tag">タグを追加</string>
+    <string name="erase_tag">タグを削除</string>
+    <string name="add">追加</string>
+    <string name="added">追加されました</string>
+    <string name="not_added">名前が空白なので追加されませんでした</string>
+    <string name="erase_tag_title">削除するタグを選んでください</string>
+    <string name="cancel">キャンセル</string>
 </resources>
