@@ -37,7 +37,7 @@ public class SettingActivity extends AppCompatActivity {
         database = mySQLiteOpenHelper.getWritableDatabase();
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        tagsNumbers = sharedPreferences.getInt("tagsNumbers", 0);
+        tagsNumbers = sharedPreferences.getInt("tagsNumbers", 1);
     }
 
     public void addTag(View view){
@@ -66,8 +66,8 @@ public class SettingActivity extends AppCompatActivity {
                 if(text != null){
                     insertTag(text);
                     Toast.makeText(getApplicationContext(), "タグ「" + text + "」が" + getString(R.string.added), Toast.LENGTH_SHORT).show();
-
                     sharedPreferences.edit().putInt("tagsNumbers", tagsNumbers + 1).apply();
+                    tagsNumbers += 1;
                 }else{
 
                     Toast.makeText(getApplicationContext(), getString(R.string.not_added), Toast.LENGTH_LONG).show();
@@ -94,10 +94,15 @@ public class SettingActivity extends AppCompatActivity {
     public void erase_tag(View view){
 
         String[] items = new String[tagsNumbers + 1];
-        for(int i = 1; i <= tagsNumbers; i += 1){
+
+        int i;
+        for(i = 1; i <= tagsNumbers; i += 1){
             items[i - 1] = search(i);
         }
-        items[tagsNumbers] = getString(R.string.all_erase);
+
+        Log.i("i", String.valueOf(i));
+
+        items[tagsNumbers] = getString(R.string.all_erase_tag);
 
         final int[] checked = new int[1];
 
@@ -115,13 +120,17 @@ public class SettingActivity extends AppCompatActivity {
             public void onClick(DialogInterface dialog, int which) {
 
                 if(checked[0] == tagsNumbers + 1){
-                    deleteDatabase(MySQLiteOpenHelper.TAGS_TABLE);
+                    for(int i = 1; i <= tagsNumbers; i += i){
+                        database.delete(MySQLiteOpenHelper.TAGS_TABLE, "id = " + i, null);
+                    }
                     Toast.makeText(SettingActivity.this, "すべてのタグを消去しました。", Toast.LENGTH_SHORT).show();
                     sharedPreferences.edit().putInt("tagsNumbers", 1).apply();
+                    tagsNumbers = 1;
                 }else{
-                    database.delete(MySQLiteOpenHelper.TAGS_TABLE, String.valueOf(checked[0]), null);
-                    Toast.makeText(getApplicationContext(), "タグ「" + search(checked[0]) + "」を削除しました", Toast.LENGTH_SHORT).show();
-                    sharedPreferences.edit().putInt("tagsNumbers", tagsNumbers + 1).apply();
+                    database.delete(MySQLiteOpenHelper.TAGS_TABLE, "id = " + checked[0], null);
+                    Toast.makeText(getApplicationContext(), "タグ「" + search(checked[0] + 1) + "」を削除しました", Toast.LENGTH_SHORT).show();
+                    sharedPreferences.edit().putInt("tagsNumbers", tagsNumbers - 1).apply();
+                    tagsNumbers -= 1;
                 }
             }
         });

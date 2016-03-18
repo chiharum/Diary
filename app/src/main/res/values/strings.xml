@@ -11,6 +11,7 @@
     <string name="all_erase">すべてのデータを削除</string>
     <string name="add_tag">タグを追加</string>
     <string name="erase_tag">タグを削除</string>
+    <string name="all_erase_tag">すべてのタグを削除</string>
     <string name="add">追加</string>
     <string name="added">追加されました</string>
     <string name="not_added">名前が空白なので追加されませんでした</string>
