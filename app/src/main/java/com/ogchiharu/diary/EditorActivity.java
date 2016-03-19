@@ -3,6 +3,7 @@ package com.ogchiharu.diary;
 import android.app.AlertDialog;
 import android.content.ContentValues;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -10,6 +11,7 @@ import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.SpannableStringBuilder;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -24,7 +26,7 @@ public class EditorActivity extends AppCompatActivity {
     String editorTag;
     EditText editText;
     TextView editorDateText;
-    ArrayAdapter arrayAdapter;
+    ArrayAdapter<String> arrayAdapter;
 
     Spinner tagsSpinner;
 
@@ -46,21 +48,21 @@ public class EditorActivity extends AppCompatActivity {
         editorDateText = (TextView)findViewById(R.id.editorDateText);
         tagsSpinner = (Spinner)findViewById(R.id.tagsSpinner);
 
-        arrayAdapter = new ArrayAdapter(this, android.R.layout.simple_spinner_item);
+        arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         tagsNumbers = sharedPreferences.getInt("tagsNumbers", 1);
         year = getIntent().getIntExtra("year", 0);
         month = getIntent().getIntExtra("month", 0);
         day = getIntent().getIntExtra("day", 0);
+        editorTag = getIntent().getStringExtra("tag");
 
-        arrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         for(int i = 1; i < tagsNumbers; i = i + 1){
             arrayAdapter.add(searchTags(i));
         }
+        arrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
         tagsSpinner.setAdapter(arrayAdapter);
-        tagsSpinner.setSelection(0);
-
+//        tagsSpinner.setSelection(0);
         tagsSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -156,5 +158,19 @@ public class EditorActivity extends AppCompatActivity {
         });
         alertDialog.setNegativeButton("キャンセル", null);
         alertDialog.show();
+    }
+
+    public boolean onKeyDown(int keyCode, KeyEvent event){
+        if(keyCode == KeyEvent.KEYCODE_BACK){
+
+            Intent intent = new Intent();
+            intent.setClass(EditorActivity.this, ListActivity.class);
+            intent.putExtra("tag", editorTag);
+            startActivity(intent);
+
+            return super.onKeyDown(keyCode, event);
+        }else{
+            return false;
+        }
     }
 }

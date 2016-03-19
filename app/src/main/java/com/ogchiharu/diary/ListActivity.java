@@ -63,9 +63,6 @@ public class ListActivity extends AppCompatActivity {
         screenDate = todayDate;
 
         title.setText("「" + tag + "」" + "の" + getString(R.string.list) + "（" + screenMonth + "月）");
-        title.setTextSize((float) height / 8);
-
-        Log.i("size", String.valueOf(title.getTextSize()));
 
         gap = todayMaxDaysOfMonth - todayDay;
 
@@ -140,6 +137,7 @@ public class ListActivity extends AppCompatActivity {
                 intent.putExtra("year", screenYear);
                 intent.putExtra("month", screenMonth);
                 intent.putExtra("day", position + 1);
+                intent.putExtra("tag", tag);
                 startActivity(intent);
             }
         });

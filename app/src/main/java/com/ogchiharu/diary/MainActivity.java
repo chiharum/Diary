@@ -32,10 +32,11 @@ public class MainActivity extends AppCompatActivity {
 
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
 
-        tagsNumbers = preferences.getInt("tagsNumbers", 1);
+        tagsNumbers = preferences.getInt("tagsNumbers", 0);
 
-        if(tagsNumbers == 1){
+        if(tagsNumbers == 0){
             insertFirst();
+            preferences.edit().putInt("tagsNumbers", 1).apply();
         }
 
         linearLayout = (LinearLayout)findViewById(R.id.linearLayout);
