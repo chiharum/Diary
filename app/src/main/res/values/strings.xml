@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Diary</string>
+    <string name="app_name">1日一言メッセージ</string>
     <string name="edit">編集</string>
     <string name="list">一覧</string>
     <string name="setting">設定</string>
@@ -20,4 +20,5 @@
     <string name="erase_tag_title">削除するタグを選んでください</string>
     <string name="rename_tag_title">名前を変更するタグを選んでください</string>
     <string name="cancel">キャンセル</string>
+    <string name="first_inserted_tag_name">日記</string>
 </resources>

@@ -11,6 +11,7 @@ import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.SpannableStringBuilder;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -24,7 +25,7 @@ public class SettingActivity extends AppCompatActivity {
     String originalTagName;
 
     EditText editText;
-    Button addTagButton;
+    Button addTagButton, settingButton1, settingButton2, settingButton3, settingButton4;
     SharedPreferences sharedPreferences;
 
     MySQLiteOpenHelper mySQLiteOpenHelper;
@@ -35,11 +36,23 @@ public class SettingActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_setting);
 
+        setTitle(getString(R.string.setting));
+
         mySQLiteOpenHelper = new MySQLiteOpenHelper(getApplicationContext());
         database = mySQLiteOpenHelper.getWritableDatabase();
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         tagsNumbers = sharedPreferences.getInt("tagsNumbers", 0);
+
+        settingButton1 = (Button)findViewById(R.id.button7);
+        settingButton2 = (Button)findViewById(R.id.button8);
+        settingButton3 = (Button)findViewById(R.id.button9);
+        settingButton4 = (Button)findViewById(R.id.button6);
+
+        settingButton1.setHeight(20);
+        settingButton2.setHeight(20);
+        settingButton3.setHeight(20);
+        settingButton4.setHeight(20);
     }
 
     public void addTag(View view){
@@ -85,11 +98,17 @@ public class SettingActivity extends AppCompatActivity {
                     for(int i = 1; i <= tagsNumbers; i += i){
                         database.delete(MySQLiteOpenHelper.TAGS_TABLE, "id = " + i, null);
                     }
-                    Toast.makeText(SettingActivity.this, "すべてのタグを消去しました。ただし、目標タグは削除されません。タグの名前を変える場合は「タグの名前を変更」から変更してください。", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(SettingActivity.this, "すべてのタグを消去しました。ただし、" + getString(R.string.first_inserted_tag_name) + "タグは削除されません。タグの名前を変える場合は「タグの名前を変更」から変更してください。", Toast.LENGTH_SHORT).show();
+
+                    mySQLiteOpenHelper = new MySQLiteOpenHelper(getApplicationContext());
+                    database = mySQLiteOpenHelper.getWritableDatabase();
+
+                    insertTag("目標");
+
                     sharedPreferences.edit().putInt("tagsNumbers", 1).apply();
                     tagsNumbers = 1;
-                    insertTag("目標");
                 }else{
+
                     if(tagsNumbers == 1){
                         Toast.makeText(getApplicationContext(), "タグは最低ひとつは必要です。タグの名前を変える場合は「タグの名前を変更」から変更してください。", Toast.LENGTH_SHORT).show();
                     }else{
@@ -132,12 +151,15 @@ public class SettingActivity extends AppCompatActivity {
         alertDialog.setMessage("すべてのデータを消去します。よろしいですか。");
         alertDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialogInterface, int which) {
+
                 deleteDatabase(MySQLiteOpenHelper.DATABASE);
-                for(int i = 1; i <= tagsNumbers; i += 1){
-                    database.delete(MySQLiteOpenHelper.TAGS_TABLE, "id = " + i, null);
-                }
+
+                mySQLiteOpenHelper = new MySQLiteOpenHelper(getApplicationContext());
+                database = mySQLiteOpenHelper.getWritableDatabase();
+
+                insertTag(getString(R.string.first_inserted_tag_name));
                 tagsNumbers = 1;
-                insertTag("目標");
+                sharedPreferences.edit().putInt("tagsNumbers", tagsNumbers).apply();
                 Toast.makeText(SettingActivity.this, "消去しました。", Toast.LENGTH_SHORT).show();
             }
         });

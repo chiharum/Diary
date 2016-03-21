@@ -1,6 +1,7 @@
 package com.ogchiharu.diary;
 
 import android.app.AlertDialog;
+import android.app.DatePickerDialog;
 import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -11,11 +12,15 @@ import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.DatePicker;
 import android.widget.LinearLayout;
+
+import java.util.Calendar;
 
 public class MainActivity extends AppCompatActivity {
 
-    int width, height, tagsNumbers;
+    int width, height, tagsNumbers, year, month, day;
+    String editorTag;
     LinearLayout linearLayout;
     SharedPreferences preferences;
 
@@ -31,12 +36,17 @@ public class MainActivity extends AppCompatActivity {
         database = mySQLiteOpenHelper.getWritableDatabase();
 
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
-
         tagsNumbers = preferences.getInt("tagsNumbers", 0);
+
+        final Calendar calendar = Calendar.getInstance();
+        year = calendar.get(Calendar.YEAR);
+        month = calendar.get(Calendar.MONTH);
+        day = calendar.get(Calendar.DAY_OF_MONTH);
 
         if(tagsNumbers == 0){
             insertFirst();
             preferences.edit().putInt("tagsNumbers", 1).apply();
+            tagsNumbers = 1;
         }
 
         linearLayout = (LinearLayout)findViewById(R.id.linearLayout);
@@ -46,9 +56,44 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void edit(View view){
-        Intent intent = new Intent();
-        intent.setClass(MainActivity.this, EditorActivity.class);
-        startActivity(intent);
+
+        final String[] items = new String[tagsNumbers];
+
+        for(int i = 1; i <= tagsNumbers; i = i + 1){
+            items[i - 1] = search(i);
+        }
+
+        AlertDialog.Builder adb = new AlertDialog.Builder(this);
+        adb.setTitle("タグを選択してください");
+        adb.setItems(items, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+
+                editorTag = items[which];
+
+                datePicker();
+            }
+        });
+        adb.show();
+    }
+
+    public void datePicker(){
+
+        DatePickerDialog datePickerDialog = new DatePickerDialog(this, new DatePickerDialog.OnDateSetListener() {
+            @Override
+            public void onDateSet(DatePicker view, int pickerYear, int monthOfYear, int dayOfMonth) {
+
+                Intent intent = new Intent();
+                intent.setClass(MainActivity.this, EditorActivity.class);
+                intent.putExtra("tag", editorTag);
+                intent.putExtra("year", pickerYear);
+                intent.putExtra("month", monthOfYear + 1);
+                intent.putExtra("day", dayOfMonth);
+                startActivity(intent);
+            }
+        }, year, month, day);
+
+        datePickerDialog.show();
     }
 
     public void check(View view){
@@ -70,6 +115,9 @@ public class MainActivity extends AppCompatActivity {
                 Intent intent = new Intent();
                 intent.setClass(MainActivity.this, ListActivity.class);
                 intent.putExtra("tag", items[which]);
+                intent.putExtra("year", year);
+                intent.putExtra("month", month + 1);
+                intent.putExtra("day", day);
                 startActivity(intent);
             }
         });
@@ -101,7 +149,7 @@ public class MainActivity extends AppCompatActivity {
 
         ContentValues value = new ContentValues();
 
-        value.put("tag", "目標");
+        value.put("tag", getString(R.string.first_inserted_tag_name));
 
         database.insert(MySQLiteOpenHelper.TAGS_TABLE, null, value);
     }

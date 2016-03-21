@@ -8,6 +8,7 @@ import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -64,9 +65,12 @@ public class ListActivity extends AppCompatActivity {
 
         title.setText("「" + tag + "」" + "の" + getString(R.string.list) + "（" + screenMonth + "月）");
 
+        setTitle("「" + tag + "」" + "の" + getString(R.string.list));
+
         gap = todayMaxDaysOfMonth - todayDay;
 
         setListView();
+        listView.setSelection(todayDay - 1);
     }
 
     public void previous(View view){
@@ -121,9 +125,9 @@ public class ListActivity extends AppCompatActivity {
 
             Item item;
             if(tag.equals("すべて")){
-                item = new Item(dateText, searchDiary(tag, date)[0], searchDiary(tag,date)[1]);
+                item = new Item(dateText, searchDiary(tag,date));
             }else{
-                item = new Item(dateText, tag, searchDiary(tag, date)[1]);
+                item = new Item(dateText, searchDiary(tag, date));
             }
             items.add(item);
         }
@@ -143,9 +147,9 @@ public class ListActivity extends AppCompatActivity {
         });
     }
 
-    public String[] searchDiary(String tag, int dateData){
+    public String searchDiary(String tag, int dateData){
         Cursor cursor = null;
-        String[] result = new String[2];
+        String result = null;
 
         try{
 
@@ -163,9 +167,20 @@ public class ListActivity extends AppCompatActivity {
             while(cursor.moveToNext()){
 
                 if(tag.equals("すべて")){
-                    result[0] += cursor.getString(indexTag) + "\n";
+
+                    if(result == null){
+                        result = cursor.getString(indexTag) + "：" + cursor.getString(indexDiary);
+                    }else{
+                        result = result + "\n" + cursor.getString(indexTag) + "：" + cursor.getString(indexDiary);
+                    }
+                }else{
+
+                    if(result == null){
+                        result = tag + "：" + cursor.getString(indexDiary);
+                    }else{
+                        result = result + "\n" + tag + "：" + cursor.getString(indexDiary);
+                    }
                 }
-                result[1] += cursor.getString(indexDiary) + "\n";
             }
         }finally {
             if(cursor != null){
@@ -174,5 +189,18 @@ public class ListActivity extends AppCompatActivity {
         }
 
         return result;
+    }
+
+    public boolean onKeyDown(int keyCode, KeyEvent event){
+        if(keyCode == KeyEvent.KEYCODE_BACK){
+
+            Intent intent = new Intent();
+            intent.setClass(ListActivity.this, MainActivity.class);
+            startActivity(intent);
+
+            return super.onKeyDown(keyCode, event);
+        }else{
+            return false;
+        }
     }
 }

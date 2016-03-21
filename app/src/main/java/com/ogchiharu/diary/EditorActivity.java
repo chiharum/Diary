@@ -11,6 +11,7 @@ import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.SpannableStringBuilder;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.AdapterView;
@@ -22,7 +23,7 @@ import android.widget.Toast;
 
 public class EditorActivity extends AppCompatActivity {
 
-    int year, month, day, date, tagsNumbers;
+    int editingYear, editingMonth, editingDay, date, tagsNumbers;
     String editorTag;
     EditText editText;
     TextView editorDateText;
@@ -40,6 +41,8 @@ public class EditorActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_editor);
 
+        setTitle("一言を編集");
+
         mySQLiteOpenHelper = new MySQLiteOpenHelper(getApplicationContext());
         database = mySQLiteOpenHelper.getWritableDatabase();
 
@@ -48,27 +51,41 @@ public class EditorActivity extends AppCompatActivity {
         editorDateText = (TextView)findViewById(R.id.editorDateText);
         tagsSpinner = (Spinner)findViewById(R.id.tagsSpinner);
 
-        arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        tagsNumbers = sharedPreferences.getInt("tagsNumbers", 1);
-        year = getIntent().getIntExtra("year", 0);
-        month = getIntent().getIntExtra("month", 0);
-        day = getIntent().getIntExtra("day", 0);
+        tagsNumbers = sharedPreferences.getInt("tagsNumbers", 0);
+        editingYear = getIntent().getIntExtra("year", 0);
+        editingMonth = getIntent().getIntExtra("month", 0);
+        editingDay = getIntent().getIntExtra("day", 0);
         editorTag = getIntent().getStringExtra("tag");
 
-        for(int i = 1; i < tagsNumbers; i = i + 1){
+        date = editingDay + editingMonth * 100 + editingYear * 10000;
+
+        Log.i("inserted", search(date, editorTag));
+
+        if(editorTag.equals("すべて")){
+            editText.setText(search(date, searchTags(0)));
+        }else{
+            editText.setText(search(date, editorTag));
+        }
+        editorDateText.setText(editingYear + "年" + editingMonth + "月" + editingDay + "日の予定");
+
+        arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item);
+        for(int i = 1; i <= tagsNumbers; i = i + 1){
             arrayAdapter.add(searchTags(i));
         }
         arrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-
         tagsSpinner.setAdapter(arrayAdapter);
-//        tagsSpinner.setSelection(0);
+        if(editorTag.equals("すべて")){
+            tagsSpinner.setSelection(0);
+        }else{
+            tagsSpinner.setSelection(searchTagId(editorTag) - 1);
+        }
         tagsSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
 
-                Spinner spinner = (Spinner)parent;
-                editorTag = (String)spinner.getSelectedItem();
+                Spinner spinner = (Spinner) parent;
+                editorTag = (String) spinner.getSelectedItem();
             }
 
             @Override
@@ -76,20 +93,14 @@ public class EditorActivity extends AppCompatActivity {
 
             }
         });
-
-        date = day + month * 100 + year * 10000;
-
-        editorDateText.setText(year + "年" + month + "月" + day + "日の予定");
-
-        editText.setText(search(date));
     }
 
-    public String search(int dateData){
+    public String search(int dateData, String tag){
         Cursor cursor = null;
         String result = "";
 
         try{
-            cursor = database.query(MySQLiteOpenHelper.DIARY_TABLE, new String[]{"date", "diary"}, "date = ?", new String[]{String.valueOf(dateData)}, null, null, null);
+            cursor = database.query(MySQLiteOpenHelper.DIARY_TABLE, new String[]{"date", "tag", "diary"}, "date = ? and tag = ?", new String[]{String.valueOf(dateData), tag}, null, null, null);
 
             int indexDiary = cursor.getColumnIndex("diary");
 
@@ -110,12 +121,33 @@ public class EditorActivity extends AppCompatActivity {
         String result = "";
 
         try{
-            cursor = database.query(MySQLiteOpenHelper.DIARY_TABLE, new String[]{"id", "tag"}, "id = ?", new String[]{String.valueOf(idNum)}, null, null, null);
+            cursor = database.query(MySQLiteOpenHelper.TAGS_TABLE, new String[]{"id", "tag"}, "id = ?", new String[]{String.valueOf(idNum)}, null, null, null);
 
             int indexTag = cursor.getColumnIndex("tag");
 
             while(cursor.moveToNext()){
                 result = cursor.getString(indexTag);
+            }
+        }finally {
+            if(cursor != null){
+                cursor.close();
+            }
+        }
+
+        return result;
+    }
+
+    public int searchTagId(String tagName){
+        Cursor cursor = null;
+        int result = 0;
+
+        try{
+            cursor = database.query(MySQLiteOpenHelper.TAGS_TABLE, new String[]{"id", "tag"}, "tag = ?", new String[]{tagName}, null, null, null);
+
+            int indexId = cursor.getColumnIndex("id");
+
+            while(cursor.moveToNext()){
+                result = cursor.getInt(indexId);
             }
         }finally {
             if(cursor != null){
@@ -132,16 +164,30 @@ public class EditorActivity extends AppCompatActivity {
         values.put("date", date);
         values.put("tag", tag);
         values.put("diary", diary);
+        values.put("times", 1);
 
         database.insert(MySQLiteOpenHelper.DIARY_TABLE, null, values);
+
+        Log.i("inserted", search(date, editorTag));
     }
 
     public void save(View view){
+
+        save();
+    }
+
+    public void save(){
+
         SpannableStringBuilder spannableStringBuilder = (SpannableStringBuilder)editText.getText();
         String text = spannableStringBuilder.toString();
         insert(date, editorTag, text);
 
         Toast.makeText(EditorActivity.this, "保存しました。", Toast.LENGTH_SHORT).show();
+
+        Intent intent = new Intent();
+        intent.setClass(EditorActivity.this, ListActivity.class);
+        intent.putExtra("tag", editorTag);
+        startActivity(intent);
     }
 
     public void erase(View view){
@@ -163,10 +209,31 @@ public class EditorActivity extends AppCompatActivity {
     public boolean onKeyDown(int keyCode, KeyEvent event){
         if(keyCode == KeyEvent.KEYCODE_BACK){
 
-            Intent intent = new Intent();
-            intent.setClass(EditorActivity.this, ListActivity.class);
-            intent.putExtra("tag", editorTag);
-            startActivity(intent);
+            AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
+            alertDialog.setTitle("確認");
+            alertDialog.setMessage("保存しますか？");
+            alertDialog.setPositiveButton(getString(R.string.save), new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    save();
+
+                    Intent intent = new Intent();
+                    intent.setClass(EditorActivity.this, ListActivity.class);
+                    intent.putExtra("tag", editorTag);
+                    startActivity(intent);
+                }
+            });
+            alertDialog.setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+
+                    Intent intent = new Intent();
+                    intent.setClass(EditorActivity.this, ListActivity.class);
+                    intent.putExtra("tag", editorTag);
+                    startActivity(intent);
+                }
+            });
+            alertDialog.show();
 
             return super.onKeyDown(keyCode, event);
         }else{
