@@ -17,17 +17,24 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class EditorActivity extends AppCompatActivity {
 
-    int editingYear, editingMonth, editingDay, date, tagsNumbers;
+    int editingYear, editingMonth, editingDay, date, tagsNumbers, diaryAmount;
     String editorTag;
-    EditText editText;
     TextView editorDateText;
+    ListView editorList;
     ArrayAdapter<String> arrayAdapter;
+    EditorCustomAdapter customAdapter;
+    List<editorItem> items;
+    editorItem item;
 
     Spinner tagsSpinner;
 
@@ -46,10 +53,9 @@ public class EditorActivity extends AppCompatActivity {
         mySQLiteOpenHelper = new MySQLiteOpenHelper(getApplicationContext());
         database = mySQLiteOpenHelper.getWritableDatabase();
 
-        editText = new EditText(this);
-        editText = (EditText)findViewById(R.id.editText);
         editorDateText = (TextView)findViewById(R.id.editorDateText);
         tagsSpinner = (Spinner)findViewById(R.id.tagsSpinner);
+        editorList = (ListView)findViewById(R.id.listView2);
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         tagsNumbers = sharedPreferences.getInt("tagsNumbers", 0);
@@ -59,15 +65,16 @@ public class EditorActivity extends AppCompatActivity {
         editorTag = getIntent().getStringExtra("tag");
 
         date = editingDay + editingMonth * 100 + editingYear * 10000;
+        diaryAmount = searchDiaryAmount(date, editorTag);
 
-        Log.i("inserted", search(date, editorTag));
-
-        if(editorTag.equals("すべて")){
-            editText.setText(search(date, searchTags(0)));
-        }else{
-            editText.setText(search(date, editorTag));
-        }
         editorDateText.setText(editingYear + "年" + editingMonth + "月" + editingDay + "日の予定");
+
+
+        insert(date, editorTag, "テスト", 1);
+
+
+
+        // スピナー
 
         arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item);
         for(int i = 1; i <= tagsNumbers; i = i + 1){
@@ -86,6 +93,10 @@ public class EditorActivity extends AppCompatActivity {
 
                 Spinner spinner = (Spinner) parent;
                 editorTag = (String) spinner.getSelectedItem();
+
+                if (!(editorTag.equals("すべて"))) {
+                    diaryAmount = searchDiaryAmount(date, editorTag);
+                }
             }
 
             @Override
@@ -93,19 +104,45 @@ public class EditorActivity extends AppCompatActivity {
 
             }
         });
+
+        // エディターリスト
+
+        items = new ArrayList<>();
+        if(editorTag.equals("すべて")){
+
+            for(int a = 1; a <= tagsNumbers; a++){
+
+                diaryAmount = searchDiaryAmount(date, searchTags(a));
+                for(int b = 0; b < diaryAmount; b++){
+                    item = new editorItem(search(date, searchTags(a))[b]);
+                    items.add(item);
+                }
+            }
+        }else{
+
+            for(int a = 0; a < diaryAmount; a++){
+
+                item = new editorItem(search(date, editorTag)[a]);
+                items.add(item);
+            }
+        }
+        customAdapter = new EditorCustomAdapter(this, R.layout.editor_list, items);
+        editorList.setAdapter(customAdapter);
     }
 
-    public String search(int dateData, String tag){
+    public String[] search(int dateData, String tag){
         Cursor cursor = null;
-        String result = "";
+        String[] result = new String[100];
 
         try{
             cursor = database.query(MySQLiteOpenHelper.DIARY_TABLE, new String[]{"date", "tag", "diary"}, "date = ? and tag = ?", new String[]{String.valueOf(dateData), tag}, null, null, null);
 
             int indexDiary = cursor.getColumnIndex("diary");
 
+            diaryAmount = 0;
             while(cursor.moveToNext()){
-                result = cursor.getString(indexDiary);
+                result[diaryAmount] = cursor.getString(indexDiary);
+                diaryAmount++;
             }
         }finally {
             if(cursor != null){
@@ -158,22 +195,42 @@ public class EditorActivity extends AppCompatActivity {
         return result;
     }
 
-    public void insert(int date, String tag, String diary){
+    public int searchDiaryAmount(int date, String tag){
+
+        Cursor cursor = null;
+        int result = 0;
+
+        try{
+            cursor = database.query(MySQLiteOpenHelper.DIARY_TABLE, new String[]{"date", "tag", "number"}, "date = ? and tag = ?", new String[]{String.valueOf(date), tag}, null, null, null);
+
+            int indexNumber = cursor.getColumnIndex("number");
+
+            while(cursor.moveToNext()){
+                result = cursor.getInt(indexNumber);
+            }
+        }finally{
+            if(cursor != null){
+                cursor.close();
+            }
+        }
+
+        return result;
+    }
+
+    public void insert(int date, String tag, String diary, int number){
 
         ContentValues values = new ContentValues();
         values.put("date", date);
         values.put("tag", tag);
         values.put("diary", diary);
-        values.put("times", 1);
+        values.put("number", number);
 
         database.insert(MySQLiteOpenHelper.DIARY_TABLE, null, values);
-
-        Log.i("inserted", search(date, editorTag));
     }
 
     public void save(View view){
 
-        save();
+//        save();
     }
 
     public void save(){
@@ -206,6 +263,10 @@ public class EditorActivity extends AppCompatActivity {
         alertDialog.show();
     }
 
+    public void addDiary(View view){
+
+    }
+
     public boolean onKeyDown(int keyCode, KeyEvent event){
         if(keyCode == KeyEvent.KEYCODE_BACK){
 
@@ -215,7 +276,7 @@ public class EditorActivity extends AppCompatActivity {
             alertDialog.setPositiveButton(getString(R.string.save), new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    save();
+//                    save();
 
                     Intent intent = new Intent();
                     intent.setClass(EditorActivity.this, ListActivity.class);

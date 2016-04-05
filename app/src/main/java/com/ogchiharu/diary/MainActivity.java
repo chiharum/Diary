@@ -8,21 +8,27 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Typeface;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.DatePicker;
 import android.widget.LinearLayout;
+import android.widget.TextView;
+
+import org.w3c.dom.Text;
 
 import java.util.Calendar;
 
 public class MainActivity extends AppCompatActivity {
 
-    int width, height, tagsNumbers, year, month, day;
+    int width, height, tagsNumbers, year, month, day, previousVersion;
     String editorTag;
     LinearLayout linearLayout;
     SharedPreferences preferences;
+
+    TextView text1, text2, text3;
 
     MySQLiteOpenHelper mySQLiteOpenHelper;
     SQLiteDatabase database;
@@ -37,6 +43,17 @@ public class MainActivity extends AppCompatActivity {
 
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
         tagsNumbers = preferences.getInt("tagsNumbers", 0);
+        previousVersion = preferences.getInt("previousVersion", 1);
+
+        preferences.edit().putInt("previousVersion", 1).apply();
+
+        text1 = (TextView)findViewById(R.id.textView);
+        text2 = (TextView)findViewById(R.id.textView2);
+        text3 = (TextView)findViewById(R.id.textView3);
+
+        text1.setTypeface(Typeface.SERIF);
+        text2.setTypeface(Typeface.SERIF);
+        text3.setTypeface(Typeface.SERIF);
 
         final Calendar calendar = Calendar.getInstance();
         year = calendar.get(Calendar.YEAR);
@@ -64,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         AlertDialog.Builder adb = new AlertDialog.Builder(this);
-        adb.setTitle("タグを選択してください");
+        adb.setTitle(getString(R.string.chose_category_title));
         adb.setItems(items, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -107,7 +124,7 @@ public class MainActivity extends AppCompatActivity {
         items[tagsNumbers] = "すべて";
 
         AlertDialog.Builder adb = new AlertDialog.Builder(this);
-        adb.setTitle("タグを選択してください");
+        adb.setTitle(getString(R.string.chose_category_title));
         adb.setItems(items, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {

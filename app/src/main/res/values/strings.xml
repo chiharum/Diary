@@ -10,15 +10,16 @@
     <string name="save">保存</string>
     <string name="add">追加</string>
     <string name="rename">変更</string>
-    <string name="all_erase">すべてのデータを削除</string>
-    <string name="add_tag">タグを追加</string>
-    <string name="erase_tag">タグを削除</string>
-    <string name="rename_tag">タグの名前を変更</string>
-    <string name="all_erase_tag">すべてのタグを削除</string>
-    <string name="added">追加されました</string>
-    <string name="not_added">タグの名前を入力してください</string>
-    <string name="erase_tag_title">削除するタグを選んでください</string>
-    <string name="rename_tag_title">名前を変更するタグを選んでください</string>
-    <string name="cancel">キャンセル</string>
     <string name="first_inserted_tag_name">日記</string>
+    <string name="cancel">キャンセル</string>
+    <string name="all_erase">すべてのデータを削除</string>
+    <string name="add_tag">カテゴリーを追加</string>
+    <string name="erase_tag">カテゴリーを削除</string>
+    <string name="rename_tag">カテゴリーの名前を変更</string>
+    <string name="all_erase_tag">すべてのカテゴリーを削除</string>
+    <string name="added">追加されました</string>
+    <string name="not_added">カテゴリーの名前を入力してください</string>
+    <string name="erase_tag_title">削除するカテゴリーを選んでください</string>
+    <string name="rename_tag_title">名前を変更するカテゴリーを選んでください</string>
+    <string name="chose_category_title">カテゴリーを選んでください</string>
 </resources>

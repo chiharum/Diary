@@ -98,22 +98,22 @@ public class SettingActivity extends AppCompatActivity {
                     for(int i = 1; i <= tagsNumbers; i += i){
                         database.delete(MySQLiteOpenHelper.TAGS_TABLE, "id = " + i, null);
                     }
-                    Toast.makeText(SettingActivity.this, "すべてのタグを消去しました。ただし、" + getString(R.string.first_inserted_tag_name) + "タグは削除されません。タグの名前を変える場合は「タグの名前を変更」から変更してください。", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(SettingActivity.this, "すべてのカテゴリーを消去しました。ただし、" + getString(R.string.first_inserted_tag_name) + "カテゴリーは削除されません。カテゴリーの名前を変える場合は「カテゴリーの名前を変更」から変更してください。", Toast.LENGTH_SHORT).show();
 
                     mySQLiteOpenHelper = new MySQLiteOpenHelper(getApplicationContext());
                     database = mySQLiteOpenHelper.getWritableDatabase();
 
-                    insertTag("目標");
+                    insertTag(getString(R.string.first_inserted_tag_name));
 
                     sharedPreferences.edit().putInt("tagsNumbers", 1).apply();
                     tagsNumbers = 1;
                 }else{
 
                     if(tagsNumbers == 1){
-                        Toast.makeText(getApplicationContext(), "タグは最低ひとつは必要です。タグの名前を変える場合は「タグの名前を変更」から変更してください。", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), "カテゴリーは最低ひとつは必要です。カテゴリーの名前を変える場合は「カテゴリーの名前を変更」から変更してください。", Toast.LENGTH_SHORT).show();
                     }else{
                         database.delete(MySQLiteOpenHelper.TAGS_TABLE, "id = " + checked[0], null);
-                        Toast.makeText(getApplicationContext(), "タグ「" + search(checked[0] + 1) + "」を削除しました", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), "カテゴリー「" + search(checked[0] + 1) + "」を削除しました", Toast.LENGTH_SHORT).show();
                         sharedPreferences.edit().putInt("tagsNumbers", tagsNumbers - 1).apply();
                         tagsNumbers -= 1;
                     }
@@ -229,9 +229,11 @@ public class SettingActivity extends AppCompatActivity {
 
                 if(text != null){
 
-                    if(editVersion == 0){
+                    if(text.equals("すべて")){
+                        Toast.makeText(SettingActivity.this, "「すべて」という名前のカテゴリーは追加できません。ほかの名前を付けてください。", Toast.LENGTH_SHORT).show();
+                    }else if(editVersion == 0){
                         insertTag(text);
-                        Toast.makeText(getApplicationContext(), "タグ「" + text + "」が" + getString(R.string.added), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), "カテゴリー「" + text + "」が" + getString(R.string.added), Toast.LENGTH_SHORT).show();
                         sharedPreferences.edit().putInt("tagsNumbers", tagsNumbers + 1).apply();
                         tagsNumbers += 1;
                     }else if(editVersion == 1){
@@ -239,7 +241,7 @@ public class SettingActivity extends AppCompatActivity {
                         ContentValues values = new ContentValues();
                         values.put("tag", text);
                         database.update(MySQLiteOpenHelper.TAGS_TABLE, values, "id = " + originalTagId, null);
-                        Toast.makeText(getApplicationContext(), "タグ「" + originalTagName + "」が「" + text + "」に変更されました", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), "カテゴリー「" + originalTagName + "」が「" + text + "」に変更されました", Toast.LENGTH_SHORT).show();
                     }
 
                 }else{

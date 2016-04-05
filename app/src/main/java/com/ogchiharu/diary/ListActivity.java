@@ -97,6 +97,7 @@ public class ListActivity extends AppCompatActivity {
         title.setText("「" + tag + "」" + "の" + getString(R.string.list) + "（" + screenMonth + "月）");
 
         setListView();
+        listView.setSelection(todayDay - 1);
     }
 
     public void next(View view){
