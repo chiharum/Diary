@@ -27,10 +27,11 @@ import java.util.List;
 
 public class EditorActivity extends AppCompatActivity {
 
-    int editingYear, editingMonth, editingDay, date, tagsNumbers, diaryAmount;
+    int editingYear, editingMonth, editingDay, date, tagsNumbers, diaryAmount, saveNumber;
     String editorTag;
     TextView editorDateText;
     ListView editorList;
+    EditText editText;
     ArrayAdapter<String> arrayAdapter;
     EditorCustomAdapter customAdapter;
     List<editorItem> items;
@@ -53,9 +54,11 @@ public class EditorActivity extends AppCompatActivity {
         mySQLiteOpenHelper = new MySQLiteOpenHelper(getApplicationContext());
         database = mySQLiteOpenHelper.getWritableDatabase();
 
+        editText = new EditText(this);
+        editText = (EditText)findViewById(R.id.editText2);
         editorDateText = (TextView)findViewById(R.id.editorDateText);
         tagsSpinner = (Spinner)findViewById(R.id.tagsSpinner);
-        editorList = (ListView)findViewById(R.id.listView2);
+        editorList = (ListView)findViewById(R.id.editorList);
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         tagsNumbers = sharedPreferences.getInt("tagsNumbers", 0);
@@ -67,12 +70,7 @@ public class EditorActivity extends AppCompatActivity {
         date = editingDay + editingMonth * 100 + editingYear * 10000;
         diaryAmount = searchDiaryAmount(date, editorTag);
 
-        editorDateText.setText(editingYear + "年" + editingMonth + "月" + editingDay + "日の予定");
-
-
-        insert(date, editorTag, "テスト", 1);
-
-
+        editorDateText.setText(editingYear + "年" + editingMonth + "月" + editingDay + "日");
 
         // スピナー
 
@@ -113,18 +111,28 @@ public class EditorActivity extends AppCompatActivity {
             for(int a = 1; a <= tagsNumbers; a++){
 
                 diaryAmount = searchDiaryAmount(date, searchTags(a));
-                for(int b = 0; b < diaryAmount; b++){
-                    item = new editorItem(search(date, searchTags(a))[b]);
-                    items.add(item);
+
+                if(diaryAmount == 0){
+                    item = new editorItem("");
+                }else{
+                    for(int b = 0; b < diaryAmount; b++){
+
+                        item = new editorItem(search(date, searchTags(a))[b]);
+                    }
                 }
+                items.add(item);
             }
         }else{
 
-            for(int a = 0; a < diaryAmount; a++){
+            if(diaryAmount == 0){
+                item = new editorItem("");
+            }else{
+                for(int a = 0; a < diaryAmount; a++){
 
-                item = new editorItem(search(date, editorTag)[a]);
-                items.add(item);
+                    item = new editorItem(search(date, editorTag)[a]);
+                }
             }
+            items.add(item);
         }
         customAdapter = new EditorCustomAdapter(this, R.layout.editor_list, items);
         editorList.setAdapter(customAdapter);
@@ -230,14 +238,18 @@ public class EditorActivity extends AppCompatActivity {
 
     public void save(View view){
 
-//        save();
+        save();
     }
 
     public void save(){
 
-        SpannableStringBuilder spannableStringBuilder = (SpannableStringBuilder)editText.getText();
-        String text = spannableStringBuilder.toString();
-        insert(date, editorTag, text);
+        saveNumber = 1;
+
+//        SpannableStringBuilder spannableStringBuilder = (SpannableStringBuilder)editText.getText();
+//        String text = spannableStringBuilder.toString();
+        String text = editText.getText().toString();
+        insert(date, editorTag, text, saveNumber);
+        saveNumber++;
 
         Toast.makeText(EditorActivity.this, "保存しました。", Toast.LENGTH_SHORT).show();
 
@@ -245,9 +257,13 @@ public class EditorActivity extends AppCompatActivity {
         intent.setClass(EditorActivity.this, ListActivity.class);
         intent.putExtra("tag", editorTag);
         startActivity(intent);
+
+        Log.i("saveNumber", String.valueOf(saveNumber));
     }
 
     public void erase(View view){
+
+        saveNumber = 1;
 
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
         alertDialog.setTitle("確認");
@@ -255,7 +271,7 @@ public class EditorActivity extends AppCompatActivity {
         alertDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialogInterface, int which) {
                 editText.setText("");
-                insert(date,editorTag, "");
+                insert(date,editorTag, "", saveNumber);
                 Toast.makeText(EditorActivity.this, "消去しました。", Toast.LENGTH_SHORT).show();
             }
         });
