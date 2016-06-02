@@ -6,6 +6,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import java.util.List;
 
@@ -34,17 +36,19 @@ public class EditorCustomAdapter extends ArrayAdapter<editorItem> {
         editorItem item = getItem(position);
 
         if(item != null){
-            viewHolder.editText.setText(item.content);
+            viewHolder.diaryText.setText(item.content);
         }
 
         return convertView;
     }
 
     private class ViewHolder{
-        EditText editText;
+        TextView diaryText;
+        ImageView editImage;
 
         public ViewHolder(View view){
-            editText = (EditText)view.findViewById(R.id.editText2);
+            diaryText = (TextView)view.findViewById(R.id.diaryText);
+            editImage = (ImageView)view.findViewById(R.id.editButton);
         }
     }
 }

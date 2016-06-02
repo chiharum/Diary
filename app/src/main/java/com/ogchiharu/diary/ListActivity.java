@@ -137,6 +137,8 @@ public class ListActivity extends AppCompatActivity {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
+                // もしタグが全てだったら選択させる
+
                 Intent intent = new Intent();
                 intent.setClass(ListActivity.this, EditorActivity.class);
                 intent.putExtra("year", screenYear);

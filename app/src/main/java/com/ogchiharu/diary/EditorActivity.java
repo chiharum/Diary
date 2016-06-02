@@ -13,9 +13,11 @@ import android.os.Bundle;
 import android.text.SpannableStringBuilder;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Spinner;
@@ -30,8 +32,9 @@ public class EditorActivity extends AppCompatActivity {
     int editingYear, editingMonth, editingDay, date, tagsNumbers, diaryAmount, saveNumber;
     String editorTag;
     TextView editorDateText;
-    ListView editorList;
     EditText editText;
+    Button editDiaryButton;
+    ListView editorList;
     ArrayAdapter<String> arrayAdapter;
     EditorCustomAdapter customAdapter;
     List<editorItem> items;
@@ -54,8 +57,6 @@ public class EditorActivity extends AppCompatActivity {
         mySQLiteOpenHelper = new MySQLiteOpenHelper(getApplicationContext());
         database = mySQLiteOpenHelper.getWritableDatabase();
 
-        editText = new EditText(this);
-        editText = (EditText)findViewById(R.id.editText2);
         editorDateText = (TextView)findViewById(R.id.editorDateText);
         tagsSpinner = (Spinner)findViewById(R.id.tagsSpinner);
         editorList = (ListView)findViewById(R.id.editorList);
@@ -134,11 +135,59 @@ public class EditorActivity extends AppCompatActivity {
             }
             items.add(item);
         }
+
+        setListView();
+    }
+
+    public void setListView(){
+
         customAdapter = new EditorCustomAdapter(this, R.layout.editor_list, items);
         editorList.setAdapter(customAdapter);
+        editorList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+
+            }
+        });
+    }
+
+    public void editDiary(String tag, final int number){
+
+        LayoutInflater inflater = (LayoutInflater)this.getSystemService(LAYOUT_INFLATER_SERVICE);
+        final View adbLayout = inflater.inflate(R.layout.add_tag_dialog, null);
+
+        editText = (EditText)adbLayout.findViewById(R.id.tagEditText);
+        Button addDiaryButton = (Button)adbLayout.findViewById(R.id.addTagButton);
+        addDiaryButton.setText(getString(R.string.done));
+
+        final AlertDialog alertDialog = new AlertDialog.Builder(this).create();
+
+        View.OnClickListener listener = new View.OnClickListener(){
+            public void onClick(View view){
+
+                String text;
+
+                SpannableStringBuilder spannableStringBuilder = (SpannableStringBuilder)editText.getText();
+                if(spannableStringBuilder == null){
+                    text = null;
+                }else{
+                    text = spannableStringBuilder.toString();
+                }
+                save(number, text);
+
+                alertDialog.dismiss();
+            }
+        };
+
+        adbLayout.findViewById(R.id.addTagButton).setOnClickListener(listener);
+
+        alertDialog.setView(adbLayout);
+        alertDialog.show();
     }
 
     public String[] search(int dateData, String tag){
+
         Cursor cursor = null;
         String[] result = new String[100];
 
@@ -236,29 +285,19 @@ public class EditorActivity extends AppCompatActivity {
         database.insert(MySQLiteOpenHelper.DIARY_TABLE, null, values);
     }
 
-    public void save(View view){
+    public void save(int saveNumber, String text){
 
-        save();
-    }
-
-    public void save(){
-
-        saveNumber = 1;
-
-//        SpannableStringBuilder spannableStringBuilder = (SpannableStringBuilder)editText.getText();
-//        String text = spannableStringBuilder.toString();
-        String text = editText.getText().toString();
         insert(date, editorTag, text, saveNumber);
-        saveNumber++;
 
         Toast.makeText(EditorActivity.this, "保存しました。", Toast.LENGTH_SHORT).show();
+    }
+
+    public void goBackToList(){
 
         Intent intent = new Intent();
         intent.setClass(EditorActivity.this, ListActivity.class);
         intent.putExtra("tag", editorTag);
         startActivity(intent);
-
-        Log.i("saveNumber", String.valueOf(saveNumber));
     }
 
     public void erase(View view){
@@ -270,8 +309,8 @@ public class EditorActivity extends AppCompatActivity {
         alertDialog.setMessage("この日の分のデータを消去します。よろしいですか。");
         alertDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialogInterface, int which) {
-                editText.setText("");
-                insert(date,editorTag, "", saveNumber);
+//                editText.setText("");
+                insert(date, editorTag, "", saveNumber);
                 Toast.makeText(EditorActivity.this, "消去しました。", Toast.LENGTH_SHORT).show();
             }
         });
@@ -279,38 +318,15 @@ public class EditorActivity extends AppCompatActivity {
         alertDialog.show();
     }
 
-    public void addDiary(View view){
+    public void done(View view){
 
+        goBackToList();
     }
 
     public boolean onKeyDown(int keyCode, KeyEvent event){
         if(keyCode == KeyEvent.KEYCODE_BACK){
 
-            AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
-            alertDialog.setTitle("確認");
-            alertDialog.setMessage("保存しますか？");
-            alertDialog.setPositiveButton(getString(R.string.save), new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-//                    save();
-
-                    Intent intent = new Intent();
-                    intent.setClass(EditorActivity.this, ListActivity.class);
-                    intent.putExtra("tag", editorTag);
-                    startActivity(intent);
-                }
-            });
-            alertDialog.setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-
-                    Intent intent = new Intent();
-                    intent.setClass(EditorActivity.this, ListActivity.class);
-                    intent.putExtra("tag", editorTag);
-                    startActivity(intent);
-                }
-            });
-            alertDialog.show();
+            goBackToList();
 
             return super.onKeyDown(keyCode, event);
         }else{

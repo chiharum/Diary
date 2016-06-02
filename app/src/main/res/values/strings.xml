@@ -6,10 +6,11 @@
     <string name="previous_month">前の月</string>
     <string name="next_month">次の月</string>
     <string name="this_month">今日</string>
-    <string name="erase">消す</string>
+    <string name="erase">すべて消す</string>
     <string name="save">保存</string>
     <string name="add">追加</string>
     <string name="rename">変更</string>
+    <string name="done">完了</string>
     <string name="first_inserted_tag_name">日記</string>
     <string name="cancel">キャンセル</string>
     <string name="all_erase">すべてのデータを削除</string>

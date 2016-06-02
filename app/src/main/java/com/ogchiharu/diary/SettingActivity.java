@@ -200,14 +200,14 @@ public class SettingActivity extends AppCompatActivity {
         adb.show();
     }
 
-    public void nameEdit(final int editVersion){
+    public void nameEdit(final int editType){
 
         LayoutInflater inflater = (LayoutInflater)this.getSystemService(LAYOUT_INFLATER_SERVICE);
         final View adbLayout = inflater.inflate(R.layout.add_tag_dialog, null);
 
         editText = (EditText)adbLayout.findViewById(R.id.tagEditText);
         addTagButton = (Button)adbLayout.findViewById(R.id.addTagButton);
-        if(editVersion == 0){
+        if(editType == 0){
             addTagButton.setText(getString(R.string.add));
         }else{
             addTagButton.setText(getString(R.string.save));
@@ -231,12 +231,12 @@ public class SettingActivity extends AppCompatActivity {
 
                     if(text.equals("すべて")){
                         Toast.makeText(SettingActivity.this, "「すべて」という名前のカテゴリーは追加できません。ほかの名前を付けてください。", Toast.LENGTH_SHORT).show();
-                    }else if(editVersion == 0){
+                    }else if(editType == 0){
                         insertTag(text);
                         Toast.makeText(getApplicationContext(), "カテゴリー「" + text + "」が" + getString(R.string.added), Toast.LENGTH_SHORT).show();
                         sharedPreferences.edit().putInt("tagsNumbers", tagsNumbers + 1).apply();
                         tagsNumbers += 1;
-                    }else if(editVersion == 1){
+                    }else if(editType == 1){
 
                         ContentValues values = new ContentValues();
                         values.put("tag", text);
