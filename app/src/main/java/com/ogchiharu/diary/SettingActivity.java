@@ -42,7 +42,7 @@ public class SettingActivity extends AppCompatActivity {
         database = mySQLiteOpenHelper.getWritableDatabase();
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        tagsNumbers = sharedPreferences.getInt("tagsNumbers", 0);
+        tagsNumbers = sharedPreferences.getInt("tagsAmounts", 0);
 
         settingButton1 = (Button)findViewById(R.id.button7);
         settingButton2 = (Button)findViewById(R.id.button8);
@@ -105,7 +105,7 @@ public class SettingActivity extends AppCompatActivity {
 
                     insertTag(getString(R.string.first_inserted_tag_name));
 
-                    sharedPreferences.edit().putInt("tagsNumbers", 1).apply();
+                    sharedPreferences.edit().putInt("tagsAmounts", 1).apply();
                     tagsNumbers = 1;
                 }else{
 
@@ -114,7 +114,7 @@ public class SettingActivity extends AppCompatActivity {
                     }else{
                         database.delete(MySQLiteOpenHelper.TAGS_TABLE, "id = " + checked[0], null);
                         Toast.makeText(getApplicationContext(), "カテゴリー「" + search(checked[0] + 1) + "」を削除しました", Toast.LENGTH_SHORT).show();
-                        sharedPreferences.edit().putInt("tagsNumbers", tagsNumbers - 1).apply();
+                        sharedPreferences.edit().putInt("tagsAmounts", tagsNumbers - 1).apply();
                         tagsNumbers -= 1;
                     }
                 }
@@ -159,7 +159,7 @@ public class SettingActivity extends AppCompatActivity {
 
                 insertTag(getString(R.string.first_inserted_tag_name));
                 tagsNumbers = 1;
-                sharedPreferences.edit().putInt("tagsNumbers", tagsNumbers).apply();
+                sharedPreferences.edit().putInt("tagsAmounts", tagsNumbers).apply();
                 Toast.makeText(SettingActivity.this, "消去しました。", Toast.LENGTH_SHORT).show();
             }
         });
@@ -234,7 +234,7 @@ public class SettingActivity extends AppCompatActivity {
                     }else if(editType == 0){
                         insertTag(text);
                         Toast.makeText(getApplicationContext(), "カテゴリー「" + text + "」が" + getString(R.string.added), Toast.LENGTH_SHORT).show();
-                        sharedPreferences.edit().putInt("tagsNumbers", tagsNumbers + 1).apply();
+                        sharedPreferences.edit().putInt("tagsAmounts", tagsNumbers + 1).apply();
                         tagsNumbers += 1;
                     }else if(editType == 1){
 

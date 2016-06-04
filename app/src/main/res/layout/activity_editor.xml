@@ -53,35 +53,48 @@
     </ScrollView>
 
     <LinearLayout
-        android:orientation="horizontal"
+        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/linearLayout7"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" >
+        android:layout_height="wrap_content">
 
         <Button
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/erase"
-            android:id="@+id/button10"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentEnd="true"
-            android:onClick="erase"
-            android:layout_weight="1"
-            android:layout_margin="5dp" />
+            android:text="@string/add"
+            android:id="@+id/button"
+            android:onClick="addDiary" />
 
-        <Button
-            android:layout_width="0dp"
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/done"
-            android:id="@+id/button11"
-            android:layout_below="@+id/button10"
-            android:layout_centerHorizontal="true"
-            android:onClick="done"
-            android:layout_weight="1"
-            android:layout_margin="5dp" />
+            android:id="@+id/linearLayout7"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true" >
+
+            <Button
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="@string/erase"
+                android:id="@+id/button10"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentEnd="true"
+                android:onClick="erase"
+                android:layout_weight="1"
+                android:layout_margin="5dp" />
+
+            <Button
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="@string/done"
+                android:id="@+id/button11"
+                android:layout_below="@+id/button10"
+                android:layout_centerHorizontal="true"
+                android:onClick="done"
+                android:layout_weight="1"
+                android:layout_margin="5dp" />
+        </LinearLayout>
     </LinearLayout>
 
 </LinearLayout>

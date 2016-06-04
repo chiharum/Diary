@@ -1,5 +1,7 @@
 package com.ogchiharu.diary;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
@@ -20,7 +22,7 @@ import java.util.List;
 
 public class ListActivity extends AppCompatActivity {
 
-    int todayYear, todayMonth, todayDay, todayMaxDaysOfMonth, todayDate, screenYear, screenMonth, screenDay, screenMaxDaysOfMonth, screenDate, gap;
+    int todayYear, todayMonth, todayDay, todayMaxDaysOfMonth, todayDate, screenYear, screenMonth, screenDay, screenMaxDaysOfMonth, screenDate, gap, tagsAmounts;
     String tag;
     CustomAdapter customAdapter;
     Calendar calendar;
@@ -44,6 +46,7 @@ public class ListActivity extends AppCompatActivity {
 
         final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         int height = preferences.getInt("height", 0);
+        tagsAmounts = preferences.getInt("tagsNumbers", 0);
 
         listView = (ListView)findViewById(R.id.listView);
         title = (TextView)findViewById(R.id.listTitleTextView);
@@ -125,11 +128,7 @@ public class ListActivity extends AppCompatActivity {
             int date = 1 + i + screenMonth * 100 + screenYear * 10000;
 
             Item item;
-            if(tag.equals("すべて")){
-                item = new Item(dateText, searchDiary(tag,date));
-            }else{
-                item = new Item(dateText, searchDiary(tag, date));
-            }
+            item = new Item(dateText, searchDiary(tag, date));
             items.add(item);
         }
         customAdapter = new CustomAdapter(this, R.layout.diary_list_layout, items);
@@ -137,17 +136,69 @@ public class ListActivity extends AppCompatActivity {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-                // もしタグが全てだったら選択させる
+                String editingTag = "";
+
+                if(tag.equals("すべて")){
+
+                    chooseTag(position);
+                }else{
+
+                    Intent intent = new Intent();
+                    intent.setClass(ListActivity.this, EditorActivity.class);
+                    intent.putExtra("year", screenYear);
+                    intent.putExtra("month", screenMonth);
+                    intent.putExtra("day", position + 1);
+                    intent.putExtra("tag", tag);
+                    startActivity(intent);
+                }
+            }
+        });
+    }
+
+    public void chooseTag(final int position){
+        final String[] items = new String[tagsAmounts];
+
+        for(int i = 1; i <= tagsAmounts; i = i + 1){
+            items[i - 1] = searchTags(i);
+        }
+
+        AlertDialog.Builder adb = new AlertDialog.Builder(this);
+        adb.setTitle(getString(R.string.chose_category_title));
+        adb.setItems(items, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
 
                 Intent intent = new Intent();
                 intent.setClass(ListActivity.this, EditorActivity.class);
                 intent.putExtra("year", screenYear);
                 intent.putExtra("month", screenMonth);
                 intent.putExtra("day", position + 1);
-                intent.putExtra("tag", tag);
+                intent.putExtra("tag", searchTags(which + 1));
                 startActivity(intent);
             }
         });
+        adb.show();
+    }
+
+    public String searchTags(int searchId){
+        Cursor cursor = null;
+        String result = "";
+
+        try{
+            cursor = database.query(MySQLiteOpenHelper.TAGS_TABLE, new String[]{"id", "tag"}, "id = ?", new String[]{String.valueOf(searchId)}, null, null, null);
+
+            int indexTag = cursor.getColumnIndex("tag");
+
+            while(cursor.moveToNext()){
+                result = cursor.getString(indexTag);
+            }
+        }finally {
+            if(cursor != null){
+                cursor.close();
+            }
+        }
+
+        return result;
     }
 
     public String searchDiary(String tag, int dateData){

@@ -11,12 +11,4 @@
         android:id="@+id/diaryText"
         android:layout_weight="5" />
 
-    <ImageView
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:id="@+id/editButton"
-        android:src="@drawable/edit"
-        android:onClick="editDiary"
-        android:layout_weight="1" />
-
 </LinearLayout>

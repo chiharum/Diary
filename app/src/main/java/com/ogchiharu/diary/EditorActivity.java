@@ -15,6 +15,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Adapter;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -33,7 +34,6 @@ public class EditorActivity extends AppCompatActivity {
     String editorTag;
     TextView editorDateText;
     EditText editText;
-    Button editDiaryButton;
     ListView editorList;
     ArrayAdapter<String> arrayAdapter;
     EditorCustomAdapter customAdapter;
@@ -62,7 +62,7 @@ public class EditorActivity extends AppCompatActivity {
         editorList = (ListView)findViewById(R.id.editorList);
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        tagsNumbers = sharedPreferences.getInt("tagsNumbers", 0);
+        tagsNumbers = sharedPreferences.getInt("tagsAmounts", 0);
         editingYear = getIntent().getIntExtra("year", 0);
         editingMonth = getIntent().getIntExtra("month", 0);
         editingDay = getIntent().getIntExtra("day", 0);
@@ -104,42 +104,21 @@ public class EditorActivity extends AppCompatActivity {
             }
         });
 
-        // エディターリスト
-
-        items = new ArrayList<>();
-        if(editorTag.equals("すべて")){
-
-            for(int a = 1; a <= tagsNumbers; a++){
-
-                diaryAmount = searchDiaryAmount(date, searchTags(a));
-
-                if(diaryAmount == 0){
-                    item = new editorItem("");
-                }else{
-                    for(int b = 0; b < diaryAmount; b++){
-
-                        item = new editorItem(search(date, searchTags(a))[b]);
-                    }
-                }
-                items.add(item);
-            }
-        }else{
-
-            if(diaryAmount == 0){
-                item = new editorItem("");
-            }else{
-                for(int a = 0; a < diaryAmount; a++){
-
-                    item = new editorItem(search(date, editorTag)[a]);
-                }
-            }
-            items.add(item);
-        }
-
         setListView();
     }
 
     public void setListView(){
+
+        items = new ArrayList<>();
+        if(diaryAmount == 0){
+            item = new editorItem("");
+        }else{
+            for(int a = 0; a < diaryAmount; a++){
+
+                item = new editorItem(search(date, editorTag)[a]);
+            }
+        }
+        items.add(item);
 
         customAdapter = new EditorCustomAdapter(this, R.layout.editor_list, items);
         editorList.setAdapter(customAdapter);
@@ -147,12 +126,32 @@ public class EditorActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
+                editDiary(position + 1);
+            }
+        });
+        editorList.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
 
+                AlertDialog.Builder adb = new AlertDialog.Builder(getApplicationContext());
+                adb.setTitle("このデータを削除します");
+                adb.setMessage("このデータを削除します。よろしいですか？");
+                adb.setPositiveButton("削除", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+
+                        // 削除する！　eraseも削除させるようにかえておく！
+                    }
+                });
+                adb.setNegativeButton("キャンセル", null);
+
+                return false;
             }
         });
     }
 
-    public void editDiary(String tag, final int number){
+    public void editDiary(final int number){
 
         LayoutInflater inflater = (LayoutInflater)this.getSystemService(LAYOUT_INFLATER_SERVICE);
         final View adbLayout = inflater.inflate(R.layout.add_tag_dialog, null);
@@ -175,7 +174,7 @@ public class EditorActivity extends AppCompatActivity {
                     text = spannableStringBuilder.toString();
                 }
                 save(number, text);
-
+                setListView();
                 alertDialog.dismiss();
             }
         };
@@ -298,6 +297,11 @@ public class EditorActivity extends AppCompatActivity {
         intent.setClass(EditorActivity.this, ListActivity.class);
         intent.putExtra("tag", editorTag);
         startActivity(intent);
+    }
+
+    public void addDiary(View view){
+
+        editDiary(diaryAmount + 1);
     }
 
     public void erase(View view){

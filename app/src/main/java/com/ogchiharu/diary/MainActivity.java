@@ -17,13 +17,11 @@ import android.widget.DatePicker;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import org.w3c.dom.Text;
-
 import java.util.Calendar;
 
 public class MainActivity extends AppCompatActivity {
 
-    int width, height, tagsNumbers, year, month, day, previousVersion;
+    int width, height, tagsAmounts, year, month, day, previousVersion;
     String editorTag;
     LinearLayout linearLayout;
     SharedPreferences preferences;
@@ -42,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
         database = mySQLiteOpenHelper.getWritableDatabase();
 
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        tagsNumbers = preferences.getInt("tagsNumbers", 0);
+        tagsAmounts = preferences.getInt("tagsNumbers", 0);
         previousVersion = preferences.getInt("previousVersion", 1);
 
         preferences.edit().putInt("previousVersion", 1).apply();
@@ -60,10 +58,10 @@ public class MainActivity extends AppCompatActivity {
         month = calendar.get(Calendar.MONTH);
         day = calendar.get(Calendar.DAY_OF_MONTH);
 
-        if(tagsNumbers == 0){
+        if(tagsAmounts == 0){
             insertFirst();
             preferences.edit().putInt("tagsNumbers", 1).apply();
-            tagsNumbers = 1;
+            tagsAmounts = 1;
         }
 
         linearLayout = (LinearLayout)findViewById(R.id.linearLayout);
@@ -74,9 +72,9 @@ public class MainActivity extends AppCompatActivity {
 
     public void edit(View view){
 
-        final String[] items = new String[tagsNumbers];
+        final String[] items = new String[tagsAmounts];
 
-        for(int i = 1; i <= tagsNumbers; i = i + 1){
+        for(int i = 1; i <= tagsAmounts; i = i + 1){
             items[i - 1] = search(i);
         }
 
@@ -113,15 +111,15 @@ public class MainActivity extends AppCompatActivity {
         datePickerDialog.show();
     }
 
-    public void check(View view){
+    public void list(View view){
 
-        final String[] items = new String[tagsNumbers + 1];
+        final String[] items = new String[tagsAmounts + 1];
 
-        for(int i = 1; i <= tagsNumbers; i = i + 1){
+        for(int i = 1; i <= tagsAmounts; i = i + 1){
             items[i - 1] = search(i);
         }
 
-        items[tagsNumbers] = "すべて";
+        items[tagsAmounts] = "すべて";
 
         AlertDialog.Builder adb = new AlertDialog.Builder(this);
         adb.setTitle(getString(R.string.chose_category_title));
