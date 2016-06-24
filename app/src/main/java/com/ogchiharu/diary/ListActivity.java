@@ -123,8 +123,7 @@ public class ListActivity extends AppCompatActivity {
         items.clear();
 
         for(int i = 0; i < screenMaxDaysOfMonth; i++){
-            String dateText;
-            dateText = screenYear + "年" + screenMonth + "月" + (1 + i) + "日";
+            String dateText = screenYear + "年" + screenMonth + "月" + (1 + i) + "日";
             int date = 1 + i + screenMonth * 100 + screenYear * 10000;
 
             Item item;
@@ -135,8 +134,6 @@ public class ListActivity extends AppCompatActivity {
         listView.setAdapter(customAdapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
-                String editingTag = "";
 
                 if(tag.equals("すべて")){
 

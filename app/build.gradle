@@ -5,11 +5,11 @@ android {
     buildToolsVersion "23.0.2"
 
     defaultConfig {
-        applicationId "com.ogchiharu.one_word_record_app"
+        applicationId "com.ogchiharu.diary"
         minSdkVersion 15
         targetSdkVersion 23
-        versionCode 1
-        versionName "1.0"
+        versionCode 11
+        versionName "2.0"
     }
     buildTypes {
         release {
