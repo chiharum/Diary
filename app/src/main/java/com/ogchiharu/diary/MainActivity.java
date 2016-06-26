@@ -25,7 +25,7 @@ import java.util.Calendar;
 public class MainActivity extends AppCompatActivity {
 
     int width, height, tagsAmounts, year, month, day, previousVersion;
-    final int presentVersion = 10;
+    final int presentVersion = 13;
     String editorTag;
     LinearLayout linearLayout;
     SharedPreferences preferences;
@@ -53,11 +53,9 @@ public class MainActivity extends AppCompatActivity {
         if(previousVersion == 1 || previousVersion == presentVersion - 1){
 
             beCompatible();
+
+            firstActivateDialog();
         }
-
-
-        beCompatible();
-
 
         preferences.edit().putInt("previousVersion", presentVersion).apply();
 
@@ -84,6 +82,15 @@ public class MainActivity extends AppCompatActivity {
 
         int dpi = getResources().getDisplayMetrics().densityDpi;
         preferences.edit().putInt("dpi", dpi).apply();
+    }
+
+    public void firstActivateDialog(){
+
+        AlertDialog.Builder adb = new AlertDialog.Builder(this);
+        adb.setTitle("バージョン2.0アップデート");
+        adb.setMessage("このアプリをご利用いただきありがとうございます。\n新バージョン2.0になりました！\nこのアップデートで、同じタグの同じ日付に複数のことをかけるようになりました。書き込む画面で「追加」ボタンをおして、複数の内容を書いてみてください！\n今後も「1日一言メッセージ」をよろしくおねがいします。\n複数のタグを管理できる機能もぜひ活用してみてください。");
+        adb.setPositiveButton("確認", null);
+        adb.show();
     }
 
     public void beCompatible(){

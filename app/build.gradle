@@ -8,8 +8,8 @@ android {
         applicationId "com.ogchiharu.diary"
         minSdkVersion 15
         targetSdkVersion 23
-        versionCode 11
-        versionName "2.0"
+        versionCode 13
+        versionName "2.0.1"
     }
     buildTypes {
         release {

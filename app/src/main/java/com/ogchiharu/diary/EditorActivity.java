@@ -11,6 +11,7 @@ import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.SpannableStringBuilder;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -32,7 +33,6 @@ public class EditorActivity extends AppCompatActivity {
     TextView editorDateText;
     EditText editText;
     ListView editorList;
-    ArrayAdapter<String> arrayAdapter;
     EditorCustomAdapter customAdapter;
     List<editorItem> items;
 
@@ -67,41 +67,12 @@ public class EditorActivity extends AppCompatActivity {
 
         editorDateText.setText(editingYear + "年" + editingMonth + "月" + editingDay + "日");
 
-        // スピナー
-
-//        arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item);
-//        for(int i = 1; i <= tagsNumbers; i = i + 1){
-//            arrayAdapter.add(searchTags(i));
-//        }
-//        arrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-//        tagsSpinner.setAdapter(arrayAdapter);
-//        if(editorTag.equals("すべて")){
-//            tagsSpinner.setSelection(0);
-//        }else{
-//            tagsSpinner.setSelection(searchTagId(editorTag) - 1);
-//        }
-//        tagsSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-//            @Override
-//            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-//
-//                Spinner spinner = (Spinner) parent;
-//                editorTag = (String) spinner.getSelectedItem();
-//
-//                if (!(editorTag.equals("すべて"))) {
-//                    diaryAmount = searchDiaryAmount(date, editorTag);
-//                }
-//            }
-//
-//            @Override
-//            public void onNothingSelected(AdapterView<?> parent) {
-//
-//            }
-//        });
-
         setListView();
     }
 
     public void setListView(){
+
+        Log.i("diaryAmount", String.valueOf(diaryAmount));
 
         items.clear();
 
@@ -122,7 +93,7 @@ public class EditorActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-                editDiary(position + 1, true);
+                editDiary(position + 1, false);
             }
         });
 
@@ -131,7 +102,6 @@ public class EditorActivity extends AppCompatActivity {
             public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
 
                 eraseCheckDialog(position + 1);
-                setListView();
                 return false;
             }
         });
@@ -146,6 +116,7 @@ public class EditorActivity extends AppCompatActivity {
             public void onClick(DialogInterface dialog, int which) {
 
                 erase(erasingNumber);
+                diaryAmount = diaryAmount - 1;
                 setListView();
             }
         });
@@ -158,7 +129,7 @@ public class EditorActivity extends AppCompatActivity {
         database.delete(MySQLiteOpenHelper.DIARY_TABLE, "date = " + date + " and number = " + number, null);
     }
 
-    public void editDiary(final int number, boolean isNewDiary){
+    public void editDiary(final int number, final boolean isNewDiary){
 
         LayoutInflater inflater = (LayoutInflater)this.getSystemService(LAYOUT_INFLATER_SERVICE);
         final View adbLayout = inflater.inflate(R.layout.add_tag_dialog, null);
@@ -167,7 +138,7 @@ public class EditorActivity extends AppCompatActivity {
         Button addDiaryButton = (Button)adbLayout.findViewById(R.id.addTagButton);
         addDiaryButton.setText(getString(R.string.done));
 
-        if(isNewDiary){
+        if(!isNewDiary){
             editText.setText(search(date, editorTag)[number - 1]);
         }
 
@@ -184,7 +155,12 @@ public class EditorActivity extends AppCompatActivity {
                 }else{
                     text = spannableStringBuilder.toString();
                 }
-                save(number, text);
+                if(isNewDiary){
+                    save(number, text);
+                    diaryAmount = diaryAmount + 1;
+                }else{
+                    update(date, editorTag, text, number);
+                }
                 setListView();
                 alertDialog.dismiss();
             }
@@ -260,6 +236,17 @@ public class EditorActivity extends AppCompatActivity {
         Toast.makeText(EditorActivity.this, "保存しました。", Toast.LENGTH_SHORT).show();
     }
 
+    public void update(int date, String tag, String diary, int number){
+
+        ContentValues values = new ContentValues();
+        values.put("date", date);
+        values.put("tag", tag);
+        values.put("diary", diary);
+        values.put("number", number);
+
+        database.update(MySQLiteOpenHelper.DIARY_TABLE, values, "number = " + number, null);
+    }
+
     public void goBackToList(){
 
         Intent intent = new Intent();
@@ -270,7 +257,7 @@ public class EditorActivity extends AppCompatActivity {
 
     public void addDiary(View view){
 
-        editDiary(diaryAmount + 1, false);
+        editDiary(diaryAmount + 1, true);
     }
 
     public void eraseAll(View view){
@@ -284,6 +271,8 @@ public class EditorActivity extends AppCompatActivity {
             public void onClick(DialogInterface dialogInterface, int which) {
 
                 database.delete(MySQLiteOpenHelper.DIARY_TABLE, "date = " + date, null);
+                diaryAmount = 0;
+                setListView();
                 Toast.makeText(EditorActivity.this, "消去しました。", Toast.LENGTH_SHORT).show();
             }
         });

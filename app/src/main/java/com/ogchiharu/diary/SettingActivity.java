@@ -11,7 +11,6 @@ import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.SpannableStringBuilder;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -42,7 +41,7 @@ public class SettingActivity extends AppCompatActivity {
         database = mySQLiteOpenHelper.getWritableDatabase();
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        tagsNumbers = sharedPreferences.getInt("tagsAmounts", 0);
+        tagsNumbers = sharedPreferences.getInt("tagsNumbers", 0);
 
         settingButton1 = (Button)findViewById(R.id.button7);
         settingButton2 = (Button)findViewById(R.id.button8);
@@ -55,17 +54,101 @@ public class SettingActivity extends AppCompatActivity {
         settingButton4.setHeight(20);
     }
 
-    public void addTag(View view){
-
-        nameEdit(0);
-    }
-
-    public void insertTag(String tagName){
+    public void saveTag(String tagName){
 
         ContentValues values = new ContentValues();
         values.put("tag", tagName);
-
         database.insert(MySQLiteOpenHelper.TAGS_TABLE, null, values);
+    }
+
+    public void updateTag(String text){
+
+        ContentValues values = new ContentValues();
+        values.put("tag", text);
+        database.update(MySQLiteOpenHelper.TAGS_TABLE, values, "id = " + originalTagId, null);
+    }
+
+    public String search(int searchId){
+        Cursor cursor = null;
+        String result = "";
+
+        try{
+            cursor = database.query(MySQLiteOpenHelper.TAGS_TABLE, new String[]{"id", "tag"}, "id = ?", new String[]{String.valueOf(searchId)}, null, null, null);
+
+            int indexTag = cursor.getColumnIndex("tag");
+
+            while(cursor.moveToNext()){
+                result = cursor.getString(indexTag);
+            }
+        }finally {
+            if(cursor != null){
+                cursor.close();
+            }
+        }
+
+        return result;
+    }
+
+    public void nameEdit(final int editType){
+
+        LayoutInflater inflater = (LayoutInflater)this.getSystemService(LAYOUT_INFLATER_SERVICE);
+        final View adbLayout = inflater.inflate(R.layout.add_tag_dialog, null);
+
+        editText = (EditText)adbLayout.findViewById(R.id.tagEditText);
+        addTagButton = (Button)adbLayout.findViewById(R.id.addTagButton);
+        if(editType == 0){
+            addTagButton.setText(getString(R.string.add));
+        }else{
+            addTagButton.setText(getString(R.string.save));
+        }
+
+        final AlertDialog alertDialog = new AlertDialog.Builder(this).create();
+
+        View.OnClickListener listener = new View.OnClickListener(){
+            public void onClick(View view1){
+
+                String text;
+
+                SpannableStringBuilder spannableStringBuilder = (SpannableStringBuilder)editText.getText();
+                if(spannableStringBuilder == null){
+                    text = null;
+                }else{
+                    text = spannableStringBuilder.toString();
+                }
+
+                if(text != null){
+
+                    if(text.equals("すべて")){
+                        Toast.makeText(SettingActivity.this, "「すべて」という名前のカテゴリーは追加できません。ほかの名前を付けてください。", Toast.LENGTH_SHORT).show();
+                    }else if(editType == 0){
+                        saveTag(text);
+                        Toast.makeText(getApplicationContext(), "カテゴリー「" + text + "」が" + getString(R.string.added), Toast.LENGTH_SHORT).show();
+                        sharedPreferences.edit().putInt("tagsNumbers", tagsNumbers + 1).apply();
+                        tagsNumbers += 1;
+                    }else if(editType == 1){
+
+                        updateTag(text);
+                        Toast.makeText(getApplicationContext(), "カテゴリー「" + originalTagName + "」が「" + text + "」に変更されました", Toast.LENGTH_SHORT).show();
+                    }
+
+                }else{
+
+                    Toast.makeText(getApplicationContext(), getString(R.string.not_added), Toast.LENGTH_LONG).show();
+                }
+
+                alertDialog.dismiss();
+            }
+        };
+
+        adbLayout.findViewById(R.id.addTagButton).setOnClickListener(listener);
+
+        alertDialog.setView(adbLayout);
+        alertDialog.show();
+    }
+
+    public void addTag(View view){
+
+        nameEdit(0);
     }
 
     public void erase_tag(View view){
@@ -103,9 +186,9 @@ public class SettingActivity extends AppCompatActivity {
                     mySQLiteOpenHelper = new MySQLiteOpenHelper(getApplicationContext());
                     database = mySQLiteOpenHelper.getWritableDatabase();
 
-                    insertTag(getString(R.string.first_inserted_tag_name));
+                    saveTag(getString(R.string.first_inserted_tag_name));
 
-                    sharedPreferences.edit().putInt("tagsAmounts", 1).apply();
+                    sharedPreferences.edit().putInt("tagsNumbers", 1).apply();
                     tagsNumbers = 1;
                 }else{
 
@@ -114,7 +197,7 @@ public class SettingActivity extends AppCompatActivity {
                     }else{
                         database.delete(MySQLiteOpenHelper.TAGS_TABLE, "id = " + checked[0], null);
                         Toast.makeText(getApplicationContext(), "カテゴリー「" + search(checked[0] + 1) + "」を削除しました", Toast.LENGTH_SHORT).show();
-                        sharedPreferences.edit().putInt("tagsAmounts", tagsNumbers - 1).apply();
+                        sharedPreferences.edit().putInt("tagsNumbers", tagsNumbers - 1).apply();
                         tagsNumbers -= 1;
                     }
                 }
@@ -122,27 +205,6 @@ public class SettingActivity extends AppCompatActivity {
         });
         adb.setNegativeButton(getString(R.string.cancel), null);
         adb.show();
-    }
-
-    public String search(int searchId){
-        Cursor cursor = null;
-        String result = "";
-
-        try{
-            cursor = database.query(MySQLiteOpenHelper.TAGS_TABLE, new String[]{"id", "tag"}, "id = ?", new String[]{String.valueOf(searchId)}, null, null, null);
-
-            int indexTag = cursor.getColumnIndex("tag");
-
-            while(cursor.moveToNext()){
-                result = cursor.getString(indexTag);
-            }
-        }finally {
-            if(cursor != null){
-                cursor.close();
-            }
-        }
-
-        return result;
     }
 
     public void erase_all(View view){
@@ -157,9 +219,9 @@ public class SettingActivity extends AppCompatActivity {
                 mySQLiteOpenHelper = new MySQLiteOpenHelper(getApplicationContext());
                 database = mySQLiteOpenHelper.getWritableDatabase();
 
-                insertTag(getString(R.string.first_inserted_tag_name));
+                saveTag(getString(R.string.first_inserted_tag_name));
                 tagsNumbers = 1;
-                sharedPreferences.edit().putInt("tagsAmounts", tagsNumbers).apply();
+                sharedPreferences.edit().putInt("tagsNumbers", tagsNumbers).apply();
                 Toast.makeText(SettingActivity.this, "消去しました。", Toast.LENGTH_SHORT).show();
             }
         });
@@ -176,87 +238,18 @@ public class SettingActivity extends AppCompatActivity {
             items[i - 1] = search(i);
         }
 
-        final int[] checked = new int[1];
-
         AlertDialog.Builder adb = new AlertDialog.Builder(this);
         adb.setTitle(getString(R.string.rename_tag_title));
         adb.setSingleChoiceItems(items, 0, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                checked[0] = which;
-            }
-        });
-
-        adb.setPositiveButton(getString(R.string.rename), new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-
                 nameEdit(1);
-                originalTagId = checked[0] + 1;
+                originalTagId = which + 1;
                 originalTagName = items[originalTagId - 1];
             }
         });
         adb.setNegativeButton(getString(R.string.cancel), null);
         adb.show();
-    }
-
-    public void nameEdit(final int editType){
-
-        LayoutInflater inflater = (LayoutInflater)this.getSystemService(LAYOUT_INFLATER_SERVICE);
-        final View adbLayout = inflater.inflate(R.layout.add_tag_dialog, null);
-
-        editText = (EditText)adbLayout.findViewById(R.id.tagEditText);
-        addTagButton = (Button)adbLayout.findViewById(R.id.addTagButton);
-        if(editType == 0){
-            addTagButton.setText(getString(R.string.add));
-        }else{
-            addTagButton.setText(getString(R.string.save));
-        }
-
-        final AlertDialog alertDialog = new AlertDialog.Builder(this).create();
-
-        View.OnClickListener listener = new View.OnClickListener(){
-            public void onClick(View view1){
-
-                String text;
-
-                SpannableStringBuilder spannableStringBuilder = (SpannableStringBuilder)editText.getText();
-                if(spannableStringBuilder == null){
-                    text = null;
-                }else{
-                    text = spannableStringBuilder.toString();
-                }
-
-                if(text != null){
-
-                    if(text.equals("すべて")){
-                        Toast.makeText(SettingActivity.this, "「すべて」という名前のカテゴリーは追加できません。ほかの名前を付けてください。", Toast.LENGTH_SHORT).show();
-                    }else if(editType == 0){
-                        insertTag(text);
-                        Toast.makeText(getApplicationContext(), "カテゴリー「" + text + "」が" + getString(R.string.added), Toast.LENGTH_SHORT).show();
-                        sharedPreferences.edit().putInt("tagsAmounts", tagsNumbers + 1).apply();
-                        tagsNumbers += 1;
-                    }else if(editType == 1){
-
-                        ContentValues values = new ContentValues();
-                        values.put("tag", text);
-                        database.update(MySQLiteOpenHelper.TAGS_TABLE, values, "id = " + originalTagId, null);
-                        Toast.makeText(getApplicationContext(), "カテゴリー「" + originalTagName + "」が「" + text + "」に変更されました", Toast.LENGTH_SHORT).show();
-                    }
-
-                }else{
-
-                    Toast.makeText(getApplicationContext(), getString(R.string.not_added), Toast.LENGTH_LONG).show();
-                }
-
-                alertDialog.dismiss();
-            }
-        };
-
-        adbLayout.findViewById(R.id.addTagButton).setOnClickListener(listener);
-
-        alertDialog.setView(adbLayout);
-        alertDialog.show();
     }
 
     public boolean onKeyDown(int keyCode, KeyEvent event){
