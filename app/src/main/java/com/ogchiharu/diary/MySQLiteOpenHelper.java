@@ -22,10 +22,13 @@ public class MySQLiteOpenHelper extends SQLiteOpenHelper {
 
         database.execSQL("create table " + PRE_DIARY_TABLE + " (id integer primary key autoincrement not null, tag text not null, date integer not null, diary text)");
         database.execSQL("create table " + TAGS_TABLE + " (id integer primary key autoincrement not null, tag text not null)");
+        database.execSQL("create table " + DIARY_TABLE + " (id integer primary key autoincrement not null, tag text not null, date integer not null, diary text, number integer not null)");
     }
 
     public void onUpgrade(SQLiteDatabase database, int oldVersion, int newVersion){
 
-        database.execSQL("create table " + DIARY_TABLE + " (id integer primary key autoincrement not null, tag text not null, date integer not null, diary text, number integer not null)");
+        if(oldVersion == 1 && newVersion == 2){
+            database.execSQL("create table " + DIARY_TABLE + " (id integer primary key autoincrement not null, tag text not null, date integer not null, diary text, number integer not null)");
+        }
     }
 }

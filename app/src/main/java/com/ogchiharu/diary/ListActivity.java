@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
@@ -46,7 +47,7 @@ public class ListActivity extends AppCompatActivity {
 
         final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         int height = preferences.getInt("height", 0);
-        tagsAmounts = preferences.getInt("tagsNumbers", 0);
+        tagsAmounts = (int)DatabaseUtils.queryNumEntries(database, MySQLiteOpenHelper.TAGS_TABLE);
 
         listView = (ListView)findViewById(R.id.listView);
         title = (TextView)findViewById(R.id.listTitleTextView);

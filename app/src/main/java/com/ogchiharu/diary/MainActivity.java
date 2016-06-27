@@ -44,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
         database = mySQLiteOpenHelper.getWritableDatabase();
 
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        tagsAmounts = preferences.getInt("tagsNumbers", 0);
+        tagsAmounts = (int)DatabaseUtils.queryNumEntries(database, MySQLiteOpenHelper.TAGS_TABLE);
         previousVersion = preferences.getInt("previousVersion", presentVersion);
 
         //ここに、アップデート後の最初の起動で行う操作を書く。
@@ -74,7 +74,6 @@ public class MainActivity extends AppCompatActivity {
 
         if(tagsAmounts == 0){
             insertFirst();
-            preferences.edit().putInt("tagsNumbers", 1).apply();
             tagsAmounts = 1;
         }
 
@@ -214,7 +213,9 @@ public class MainActivity extends AppCompatActivity {
             items[i - 1] = searchTag(i);
         }
 
-        items[tagsAmounts] = "すべて";
+        if(tagsAmounts != 0 && tagsAmounts != 1){
+            items[tagsAmounts] = "すべて";
+        }
 
         AlertDialog.Builder adb = new AlertDialog.Builder(this);
         adb.setTitle(getString(R.string.chose_category_title));
