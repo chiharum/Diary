@@ -10,20 +10,18 @@ import android.database.sqlite.SQLiteDatabase;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
-
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
 public class ListActivity extends AppCompatActivity {
 
-    int todayYear, todayMonth, todayDay, todayMaxDaysOfMonth, todayDate, screenYear, screenMonth, screenDay, screenMaxDaysOfMonth, screenDate, gap, tagsAmounts;
+    int todayYear, todayMonth, todayDay, todayMaxDaysOfMonth, todayDate, screenYear, screenMonth, screenDay, screenMaxDaysOfMonth, screenDate, gap, tagsAmounts, tagId;
     String tag;
     CustomAdapter customAdapter;
     Calendar calendar;
@@ -43,10 +41,9 @@ public class ListActivity extends AppCompatActivity {
         mySQLiteOpenHelper = new MySQLiteOpenHelper(getApplicationContext());
         database = mySQLiteOpenHelper.getWritableDatabase();
 
-        tag = getIntent().getStringExtra("tag");
+        tagId = getIntent().getIntExtra("tag", 0);
+        tag = searchTags(tagId);
 
-        final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        int height = preferences.getInt("height", 0);
         tagsAmounts = (int)DatabaseUtils.queryNumEntries(database, MySQLiteOpenHelper.TAGS_TABLE);
 
         listView = (ListView)findViewById(R.id.listView);
@@ -67,7 +64,7 @@ public class ListActivity extends AppCompatActivity {
         screenMaxDaysOfMonth = todayMaxDaysOfMonth;
         screenDate = todayDate;
 
-        title.setText("「" + tag + "」" + "の" + getString(R.string.list) + "（" + screenMonth + "月）");
+        title.setText("「" + tag + "」" + "の" + getString(R.string.list) + "（" + screenYear + "年" + screenMonth + "月）");
 
         setTitle("「" + tag + "」" + "の" + getString(R.string.list));
 
@@ -136,7 +133,7 @@ public class ListActivity extends AppCompatActivity {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-                if(tag.equals("すべて")){
+                if(tagId == tagsAmounts + 1){
 
                     chooseTag(position);
                 }else{
@@ -146,7 +143,7 @@ public class ListActivity extends AppCompatActivity {
                     intent.putExtra("year", screenYear);
                     intent.putExtra("month", screenMonth);
                     intent.putExtra("day", position + 1);
-                    intent.putExtra("tag", tag);
+                    intent.putExtra("tag", tagId);
                     startActivity(intent);
                 }
             }
@@ -171,7 +168,7 @@ public class ListActivity extends AppCompatActivity {
                 intent.putExtra("year", screenYear);
                 intent.putExtra("month", screenMonth);
                 intent.putExtra("day", position + 1);
-                intent.putExtra("tag", searchTags(which + 1));
+                intent.putExtra("tag", which + 1);
                 startActivity(intent);
             }
         });
@@ -179,11 +176,12 @@ public class ListActivity extends AppCompatActivity {
     }
 
     public String searchTags(int searchId){
+
         Cursor cursor = null;
         String result = "";
 
         try{
-            cursor = database.query(MySQLiteOpenHelper.TAGS_TABLE, new String[]{"id", "tag"}, "id = ?", new String[]{String.valueOf(searchId)}, null, null, null);
+            cursor = database.query(MySQLiteOpenHelper.TAGS_TABLE, new String[]{"tag"}, "id = ?", new String[]{String.valueOf(searchId)}, null, null, null);
 
             int indexTag = cursor.getColumnIndex("tag");
 
@@ -200,6 +198,7 @@ public class ListActivity extends AppCompatActivity {
     }
 
     public String searchDiary(String tag, int dateData){
+
         Cursor cursor = null;
         String result = null;
 
@@ -207,10 +206,10 @@ public class ListActivity extends AppCompatActivity {
 
             int indexTag = 0;
 
-            if(tag.equals("すべて")){
-                cursor = database.query(MySQLiteOpenHelper.DIARY_TABLE, new String[]{"tag", "date", "diary"}, "date = ?", new String[]{String.valueOf(dateData)}, null, null, null);
+            if(tagId == tagsAmounts + 1){
+                cursor = database.query(MySQLiteOpenHelper.DIARY_TABLE, new String[]{"diary"}, "date = ?", new String[]{String.valueOf(dateData)}, null, null, null);
             }else{
-                cursor = database.query(MySQLiteOpenHelper.DIARY_TABLE, new String[]{"tag", "date", "diary"}, "date = ? and tag = ?", new String[]{String.valueOf(dateData), String.valueOf(tag)}, null, null, null);
+                cursor = database.query(MySQLiteOpenHelper.DIARY_TABLE, new String[]{"tag", "diary"}, "date = ? and tag = ?", new String[]{String.valueOf(dateData), String.valueOf(tag)}, null, null, null);
                 indexTag = cursor.getColumnIndex("tag");
             }
 
@@ -218,7 +217,7 @@ public class ListActivity extends AppCompatActivity {
 
             while(cursor.moveToNext()){
 
-                if(tag.equals("すべて")){
+                if(tagId == tagsAmounts + 1){
 
                     if(result == null){
                         result = cursor.getString(indexTag) + "：" + cursor.getString(indexDiary);

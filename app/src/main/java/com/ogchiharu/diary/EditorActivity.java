@@ -6,17 +6,16 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.SpannableStringBuilder;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -28,7 +27,7 @@ import java.util.List;
 
 public class EditorActivity extends AppCompatActivity {
 
-    int editingYear, editingMonth, editingDay, date, tagsNumbers, diaryAmount, saveNumber;
+    int editingYear, editingMonth, editingDay, date, tagsNumbers, diaryAmount, saveNumber, editorTagId;
     String editorTag;
     TextView editorDateText;
     EditText editText;
@@ -59,10 +58,12 @@ public class EditorActivity extends AppCompatActivity {
         editingYear = getIntent().getIntExtra("year", 0);
         editingMonth = getIntent().getIntExtra("month", 0);
         editingDay = getIntent().getIntExtra("day", 0);
-        editorTag = getIntent().getStringExtra("tag");
+        editorTagId = getIntent().getIntExtra("tag", 0);
+
+        editorTag = searchTag(editorTagId);
 
         date = editingDay + editingMonth * 100 + editingYear * 10000;
-        diaryAmount = searchDiaryAmount(date, editorTag);
+        diaryAmount = (int) DatabaseUtils.queryNumEntries(database, MySQLiteOpenHelper.DIARY_TABLE, "date = ? and tag = ?", new String[]{String.valueOf(date), editorTag});
         items = new ArrayList<>();
 
         editorDateText.setText(editingYear + "年" + editingMonth + "月" + editingDay + "日");
@@ -72,14 +73,12 @@ public class EditorActivity extends AppCompatActivity {
 
     public void setListView(){
 
-        Log.i("diaryAmount", String.valueOf(diaryAmount));
-
         items.clear();
 
         if(diaryAmount != 0){
             for (int a = 0; a < diaryAmount; a++) {
 
-                String itemText = search(date, editorTag)[a];
+                String itemText = searchDiary(date, editorTag)[a];
 
                 editorItem item;
                 item = new editorItem(itemText);
@@ -139,7 +138,7 @@ public class EditorActivity extends AppCompatActivity {
         addDiaryButton.setText(getString(R.string.done));
 
         if(!isNewDiary){
-            editText.setText(search(date, editorTag)[number - 1]);
+            editText.setText(searchDiary(date, editorTag)[number - 1]);
         }
 
         final AlertDialog alertDialog = new AlertDialog.Builder(this).create();
@@ -172,7 +171,7 @@ public class EditorActivity extends AppCompatActivity {
         alertDialog.show();
     }
 
-    public String[] search(int dateData, String tag){
+    public String[] searchDiary(int dateData, String tag){
 
         Cursor cursor = null;
         String[] result = new String[100];
@@ -196,18 +195,18 @@ public class EditorActivity extends AppCompatActivity {
         return result;
     }
 
-    public int searchDiaryAmount(int date, String tag){
+    public String searchTag(int tagId){
 
         Cursor cursor = null;
-        int result = 0;
+        String resultTag = "";
 
         try{
-            cursor = database.query(MySQLiteOpenHelper.DIARY_TABLE, new String[]{"date", "tag", "number"}, "date = ? and tag = ?", new String[]{String.valueOf(date), tag}, null, null, null);
+            cursor = database.query(MySQLiteOpenHelper.TAGS_TABLE, new String[]{"tag"}, "id = ?", new String[]{String.valueOf(tagId)}, null, null, null);
 
-            int indexNumber = cursor.getColumnIndex("number");
+            int indexTag = cursor.getColumnIndex("tag");
 
             while(cursor.moveToNext()){
-                result = cursor.getInt(indexNumber);
+                resultTag = cursor.getString(indexTag);
             }
         }finally{
             if(cursor != null){
@@ -215,7 +214,7 @@ public class EditorActivity extends AppCompatActivity {
             }
         }
 
-        return result;
+        return resultTag;
     }
 
     public void insert(int date, String tag, String diary, int number){
@@ -251,7 +250,7 @@ public class EditorActivity extends AppCompatActivity {
 
         Intent intent = new Intent();
         intent.setClass(EditorActivity.this, ListActivity.class);
-        intent.putExtra("tag", editorTag);
+        intent.putExtra("tag", editorTagId);
         startActivity(intent);
     }
 

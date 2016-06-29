@@ -20,7 +20,6 @@ public class MySQLiteOpenHelper extends SQLiteOpenHelper {
 
     public void onCreate(SQLiteDatabase database){
 
-        database.execSQL("create table " + PRE_DIARY_TABLE + " (id integer primary key autoincrement not null, tag text not null, date integer not null, diary text)");
         database.execSQL("create table " + TAGS_TABLE + " (id integer primary key autoincrement not null, tag text not null)");
         database.execSQL("create table " + DIARY_TABLE + " (id integer primary key autoincrement not null, tag text not null, date integer not null, diary text, number integer not null)");
     }

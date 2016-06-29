@@ -25,8 +25,7 @@ import java.util.Calendar;
 public class MainActivity extends AppCompatActivity {
 
     int width, height, tagsAmounts, year, month, day, previousVersion;
-    final int presentVersion = 13;
-    String editorTag;
+    final int presentVersion = 15;
     LinearLayout linearLayout;
     SharedPreferences preferences;
 
@@ -44,13 +43,12 @@ public class MainActivity extends AppCompatActivity {
         database = mySQLiteOpenHelper.getWritableDatabase();
 
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        tagsAmounts = (int)DatabaseUtils.queryNumEntries(database, MySQLiteOpenHelper.TAGS_TABLE);
         previousVersion = preferences.getInt("previousVersion", presentVersion);
 
         //ここに、アップデート後の最初の起動で行う操作を書く。
         //Write here tasks for the first use after an update.
 
-        if(previousVersion == 1 || previousVersion == presentVersion - 1){
+        if(previousVersion == 1){
 
             beCompatible();
 
@@ -58,6 +56,8 @@ public class MainActivity extends AppCompatActivity {
         }
 
         preferences.edit().putInt("previousVersion", presentVersion).apply();
+
+        tagsAmounts = (int)DatabaseUtils.queryNumEntries(database, MySQLiteOpenHelper.TAGS_TABLE);
 
         text1 = (TextView)findViewById(R.id.editTitleTextView);
         text2 = (TextView)findViewById(R.id.listTitleTextView);
@@ -94,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void beCompatible(){
 
-        long amountOfDiary = DatabaseUtils.queryNumEntries(database, MySQLiteOpenHelper.PRE_DIARY_TABLE);
+        int amountOfDiary = (int)DatabaseUtils.queryNumEntries(database, MySQLiteOpenHelper.PRE_DIARY_TABLE);
 
         for(int countUpId = 1; countUpId <= amountOfDiary; countUpId++){
 
@@ -108,13 +108,15 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public String[] searchData(int id){
+    public String[] searchData(int searchId){
+
+        //0がタグ、1が日付、2が内容を取得(String[])
 
         Cursor cursor = null;
         String[] data = new String[3];
 
         try{
-            cursor = database.query(MySQLiteOpenHelper.PRE_DIARY_TABLE, new String[]{"tag", "date", "diary"}, "id = ?", new String[]{String.valueOf(id)}, null, null, null);
+            cursor = database.query(MySQLiteOpenHelper.PRE_DIARY_TABLE, new String[]{"tag", "date", "diary"}, "id = ?", new String[]{String.valueOf(searchId)}, null, null, null);
 
             int indexTag = cursor.getColumnIndex("tag");
             int indexDate = cursor.getColumnIndex("date");
@@ -134,7 +136,7 @@ public class MainActivity extends AppCompatActivity {
         return data;
     }
 
-    public void datePicker(){
+    public void datePicker(final int tagId){
 
         DatePickerDialog datePickerDialog = new DatePickerDialog(this, new DatePickerDialog.OnDateSetListener() {
             @Override
@@ -142,7 +144,7 @@ public class MainActivity extends AppCompatActivity {
 
                 Intent intent = new Intent();
                 intent.setClass(MainActivity.this, EditorActivity.class);
-                intent.putExtra("tag", editorTag);
+                intent.putExtra("tag", tagId);
                 intent.putExtra("year", pickerYear);
                 intent.putExtra("month", monthOfYear + 1);
                 intent.putExtra("day", dayOfMonth);
@@ -197,9 +199,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(DialogInterface dialog, int which) {
 
-                editorTag = items[which];
-
-                datePicker();
+                datePicker(which + 1);
             }
         });
         adb.show();
@@ -214,7 +214,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if(tagsAmounts != 0 && tagsAmounts != 1){
-            items[tagsAmounts] = "すべて";
+            items[tagsAmounts] = "すべてのタグ";
         }
 
         AlertDialog.Builder adb = new AlertDialog.Builder(this);
@@ -225,7 +225,7 @@ public class MainActivity extends AppCompatActivity {
 
                 Intent intent = new Intent();
                 intent.setClass(MainActivity.this, ListActivity.class);
-                intent.putExtra("tag", items[which]);
+                intent.putExtra("tag", which + 1);
                 intent.putExtra("year", year);
                 intent.putExtra("month", month + 1);
                 intent.putExtra("day", day);

@@ -61,7 +61,7 @@ public class SettingActivity extends AppCompatActivity {
         ContentValues values = new ContentValues();
         values.put("tag", tagName);
         database.insert(MySQLiteOpenHelper.TAGS_TABLE, null, values);
-        tagsNumbers += 1;
+        tagsNumbers = tagsNumbers + 1;
     }
 
     public void updateTag(String text, int tagId){
@@ -112,28 +112,29 @@ public class SettingActivity extends AppCompatActivity {
         View.OnClickListener listener = new View.OnClickListener(){
             public void onClick(View view1){
 
-                String text;
+                String inputText;
 
                 SpannableStringBuilder spannableStringBuilder = (SpannableStringBuilder)editText.getText();
                 if(spannableStringBuilder == null){
-                    text = null;
+                    inputText = null;
                 }else{
-                    text = spannableStringBuilder.toString();
+                    inputText = spannableStringBuilder.toString();
                 }
 
-                if(text != null){
+                if(inputText != null){
 
-                    Log.i("text", text);
+                    Log.i("text", inputText);
 
-                    if(text.equals("すべて")){
-                        Toast.makeText(SettingActivity.this, "「すべて」という名前のタグは追加できません。ほかの名前を付けてください。", Toast.LENGTH_SHORT).show();
-                    }else if(editType == 0){
-                        saveTag(text);
-                        Toast.makeText(getApplicationContext(), "タグ「" + text + "」が" + getString(R.string.added), Toast.LENGTH_SHORT).show();
+                    if(editType == 0){
+
+                        //新しく
+                        saveTag(inputText);
+                        Toast.makeText(getApplicationContext(), "タグ「" + inputText + "」が" + getString(R.string.added), Toast.LENGTH_SHORT).show();
                     }else if(editType == 1){
 
-                        updateTag(text, originalTagId);
-                        Toast.makeText(getApplicationContext(), "タグ「" + originalTagName + "」が「" + text + "」に変更されました", Toast.LENGTH_SHORT).show();
+                        //編集
+                        updateTag(inputText, originalTagId);
+                        Toast.makeText(getApplicationContext(), "タグ「" + originalTagName + "」が「" + inputText + "」に変更されました", Toast.LENGTH_SHORT).show();
                     }
 
                 }else{
@@ -208,6 +209,7 @@ public class SettingActivity extends AppCompatActivity {
     }
 
     public void erase_all(View view){
+
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
         alertDialog.setTitle("確認");
         alertDialog.setMessage("すべてのデータを消去します。よろしいですか。");
@@ -216,12 +218,7 @@ public class SettingActivity extends AppCompatActivity {
 
                 deleteDatabase(MySQLiteOpenHelper.DATABASE);
 
-                mySQLiteOpenHelper = new MySQLiteOpenHelper(getApplicationContext());
-                database = mySQLiteOpenHelper.getWritableDatabase();
-
-                saveTag(getString(R.string.first_inserted_tag_name));
-                tagsNumbers = 1;
-                sharedPreferences.edit().putInt("tagsNumbers", tagsNumbers).apply();
+                tagsNumbers = 0;
                 Toast.makeText(SettingActivity.this, "消去しました。", Toast.LENGTH_SHORT).show();
             }
         });
@@ -233,8 +230,7 @@ public class SettingActivity extends AppCompatActivity {
 
         final String[] items = new String[tagsNumbers];
 
-        int i;
-        for(i = 1; i <= tagsNumbers; i += 1){
+        for(int i = 1; i <= tagsNumbers; i += 1){
             items[i - 1] = searchTag(i);
         }
 
@@ -243,12 +239,13 @@ public class SettingActivity extends AppCompatActivity {
         adb.setSingleChoiceItems(items, 0, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                nameEdit(1);
+
                 originalTagId = which + 1;
                 originalTagName = items[originalTagId - 1];
+                nameEdit(1);
+                originalTagId = 0;
             }
         });
-        adb.setNegativeButton(getString(R.string.cancel), null);
         adb.show();
     }
 
